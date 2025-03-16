@@ -1,0 +1,89 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Switch Robot Project",
+            "type": "shell",
+            "command": "make -j",
+            "args": [
+                "ROBOT_PROJECT=${input:robotProject}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Build Current Robot Project",
+            "type": "shell",
+            "command": "make -j",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Flash Current Robot Project",
+            "type": "shell",
+            "command": "make flash",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Clean Current Robot Project",
+            "type": "shell",
+            "command": "make clean_robot",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Clean All",
+            "type": "shell",
+            "command": "make clean",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Clean Shared Library",
+            "type": "shell",
+            "command": "make clean_lib",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "robotProject",
+            "type": "pickString",
+            "description": "Select the robot project to build",
+            "options": [
+                "Swerve-Standard",
+                "Template",
+                // Add your other robot projects here
+            ]
+        }
+    ]
+}
