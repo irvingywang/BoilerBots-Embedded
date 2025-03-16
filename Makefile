@@ -9,11 +9,17 @@ BOARD = typec
 CONTROL_BASE = control-base
 BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board-base
 
+# Library name for shared components
+SHARED_LIB = control_base_lib
+
 ifeq ($(BOARD), typec)
 	STARTUP_POSTFIX = stm32f407xx
 	LINK_SCRIPT_PREFIX = STM32F407IGHx
 	BOARD_C_DEF = STM32F407xx
 endif
+
+# Find all robot projects (directories that contain a src subdirectory)
+ROBOT_PROJECTS := $(notdir $(wildcard $(abspath .)/*/src))
 
 ######################################
 # building variables
@@ -28,13 +34,15 @@ OPT = -Og
 # paths
 #######################################
 # Build path
-BUILD_DIR = build/$(ROBOT_PROJECT)
+BUILD_DIR = build
+ROBOT_BUILD_DIR = $(BUILD_DIR)/$(ROBOT_PROJECT)
+LIB_BUILD_DIR = $(BUILD_DIR)/lib
 
 ######################################
 # source
 ######################################
-# C sources
-C_SOURCES =  \
+# Shared C sources
+SHARED_C_SOURCES =  \
 $(BOARD_BASE)/Core/Src/main.c \
 $(BOARD_BASE)/Core/Src/gpio.c \
 $(BOARD_BASE)/Core/Src/freertos.c \
@@ -80,13 +88,22 @@ $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c 
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 $(wildcard $(CONTROL_BASE)/algo/src/*.c) \
 $(wildcard $(CONTROL_BASE)/bsp/src/*.c) \
-$(wildcard $(CONTROL_BASE)/devices/src/*.c) \
-$(wildcard $(ROBOT_PROJECT)/src/*.c) \
+$(wildcard $(CONTROL_BASE)/devices/src/*.c)
+
+# Robot-specific C sources
+ROBOT_C_SOURCES = \
+$(wildcard $(ROBOT_PROJECT)/src/*.c)
+
+# All C sources (for backwards compatibility)
+C_SOURCES = $(SHARED_C_SOURCES) $(ROBOT_C_SOURCES)
 
 # ASM sources
 ASM_SOURCES =  \
 $(BOARD_BASE)/startup_stm32f407xx.s
 
+# ASM sources for shared library
+SHARED_ASM_SOURCES = \
+$(BOARD_BASE)/startup_stm32f407xx.s
 
 #######################################
 # binaries
@@ -174,15 +191,15 @@ LDSCRIPT = $(BOARD_BASE)/$(LINK_SCRIPT_PREFIX)_FLASH.ld
 # libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
-LDFLAGS = $(MCU) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -Wl,--print-memory-usage -u _printf_float
+LDFLAGS = $(MCU) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(ROBOT_BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -Wl,--print-memory-usage -u _printf_float
 
 # default action: build all
-all: print_info $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+all: print_info $(ROBOT_BUILD_DIR)/$(TARGET).elf $(ROBOT_BUILD_DIR)/$(TARGET).hex $(ROBOT_BUILD_DIR)/$(TARGET).bin
 
 # Add a print statement to debug which sources are being compiled
 print_info:
 	@echo "=== Building robot project: $(ROBOT_PROJECT) ==="
-	@echo "=== Output will be named: $(BUILD_DIR)/$(TARGET).elf ==="
+	@echo "=== Output will be named: $(ROBOT_BUILD_DIR)/$(TARGET).elf ==="
 #	@echo "=== Robot sources being compiled: ==="
 # 	@ls -la $(ROBOT_PROJECT)/src/*.c
 # 	@echo "=== Robot headers: ==="
@@ -190,33 +207,85 @@ print_info:
 	@echo "=== Compiler: $(CC) ==="
 
 #######################################
-# build the application
+# Objects
 #######################################
+# Shared library objects
+SHARED_OBJECTS = $(addprefix $(LIB_BUILD_DIR)/,$(notdir $(SHARED_C_SOURCES:.c=.o)))
+vpath %.c $(sort $(dir $(SHARED_C_SOURCES)))
+
+# Shared ASM objects
+SHARED_OBJECTS += $(addprefix $(LIB_BUILD_DIR)/,$(notdir $(SHARED_ASM_SOURCES:.s=.o)))
+vpath %.s $(sort $(dir $(SHARED_ASM_SOURCES)))
+
+# Robot-specific objects
+ROBOT_OBJECTS = $(addprefix $(ROBOT_BUILD_DIR)/,$(notdir $(ROBOT_C_SOURCES:.c=.o)))
+vpath %.c $(sort $(dir $(ROBOT_C_SOURCES)))
+
+# All objects (for backwards compatibility)
+OBJECTS = $(addprefix $(ROBOT_BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
+OBJECTS += $(addprefix $(ROBOT_BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
+
 # list of objects
-OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
+OBJECTS = $(addprefix $(ROBOT_BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM program objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
+OBJECTS += $(addprefix $(ROBOT_BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+$(ROBOT_BUILD_DIR)/%.o: %.c Makefile | $(ROBOT_BUILD_DIR) 
+	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(ROBOT_BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
+$(ROBOT_BUILD_DIR)/%.o: %.s Makefile | $(ROBOT_BUILD_DIR)
 	@$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+$(ROBOT_BUILD_DIR)/$(TARGET).elf: $(ROBOT_OBJECTS) $(LIB_BUILD_DIR)/lib$(SHARED_LIB).a | $(ROBOT_BUILD_DIR)
+	@echo "Linking $@"
+	@$(CC) $(ROBOT_OBJECTS) -L$(LIB_BUILD_DIR) -l$(SHARED_LIB) $(LDFLAGS) -o $@
 	$(SZ) $@
 
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(ROBOT_BUILD_DIR)/%.hex: $(ROBOT_BUILD_DIR)/%.elf | $(ROBOT_BUILD_DIR)
 	$(HEX) $< $@
 	
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(ROBOT_BUILD_DIR)/%.bin: $(ROBOT_BUILD_DIR)/%.elf | $(ROBOT_BUILD_DIR)
 	$(BIN) $< $@	
 	
-$(BUILD_DIR):
+$(ROBOT_BUILD_DIR):
 	@mkdir $@		
+
+# Add a target to build the shared library
+lib: $(LIB_BUILD_DIR)/lib$(SHARED_LIB).a
+
+# Add a target to build all robot projects
+all_robots: $(foreach proj,$(ROBOT_PROJECTS),build_$(proj))
+
+# Target for each robot project
+define ROBOT_PROJECT_RULE
+build_$(1): lib
+	@echo "=== Building robot project: $(1) ==="
+	@$(MAKE) ROBOT_PROJECT=$(1)
+endef
+
+$(foreach proj,$(ROBOT_PROJECTS),$(eval $(call ROBOT_PROJECT_RULE,$(proj))))
+
+# Rules for shared library objects
+$(LIB_BUILD_DIR)/%.o: %.c Makefile | $(LIB_BUILD_DIR)
+	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(LIB_BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+
+$(LIB_BUILD_DIR)/%.o: %.s Makefile | $(LIB_BUILD_DIR)
+	@$(AS) -c $(CFLAGS) $< -o $@
+
+# Rule to create the shared library
+$(LIB_BUILD_DIR)/lib$(SHARED_LIB).a: $(SHARED_OBJECTS)
+	@echo "Creating shared library $@"
+	@$(AR) rcs $@ $(SHARED_OBJECTS)
+
+# Rules for robot-specific objects
+$(ROBOT_BUILD_DIR)/%.o: %.c Makefile | $(ROBOT_BUILD_DIR)
+	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(ROBOT_BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+
+# Create build directories
+$(ROBOT_BUILD_DIR) $(LIB_BUILD_DIR):
+	@mkdir -p $@
 
 #######################################
 # clean up
@@ -224,10 +293,16 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR)
 
+clean_lib:
+	rm -rf $(LIB_BUILD_DIR)
+
+clean_robot:
+	rm -rf $(ROBOT_BUILD_DIR)
+
 #######################################
 # dependencies
 #######################################
--include $(wildcard $(BUILD_DIR)/*.d)
+-include $(wildcard $(ROBOT_BUILD_DIR)/*.d)
 
 #######################################
 # download task
@@ -239,10 +314,10 @@ ECHO_SUCCESS_POWERSHELL=powershell Write-Host -ForegroundColor Green [Success]:
 
 flash_powershell:
 	@echo "Attempting to use CMSIS-DAP..."
-	@openocd -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	@openocd -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(ROBOT_BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	($(ECHO_SUCCESS_POWERSHELL) "Successfully programmed the device using CMSIS-DAP.") || \
 	($(ECHO_WARNING_POWERSHELL) "Failed to connect using CMSIS-DAP. Attempting to use STLink..." && \
-	openocd -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	openocd -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(ROBOT_BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	($(ECHO_SUCCESS_POWERSHELL) "Successfully programmed the device using STLink.") || \
 	($(ECHO_WARNING_POWERSHELL) "Failed to connect using both CMSIS-DAP and STLink. Please check your connections and try again."))
 
@@ -253,10 +328,10 @@ ECHO_SUCCESS=echo "\033[32m[Success]\033[0m"
 
 flash:
 	@echo "Attempting to use CMSIS-DAP..."
-	@openocd -d2 -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	@openocd -d2 -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(ROBOT_BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	($(ECHO_SUCCESS) "Successfully programmed the device using CMSIS-DAP.") || \
 	($(ECHO_WARNING) "Failed to connect using CMSIS-DAP. Attempting to use STLink..." && \
-	openocd -d2 -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	openocd -d2 -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(ROBOT_BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	($(ECHO_SUCCESS) "Successfully programmed the device using STLink.") || \
 	($(ECHO_WARNING) "Failed to connect using both CMSIS-DAP and STLink. Please check your connections and try again."))
 
