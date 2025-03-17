@@ -19,9 +19,6 @@
             "type": "shell",
             "command": "make",
             "args": [
-                "clean",
-                "&&",
-                "make",
                 "-j",
                 "V=1",
                 "ROBOT_PROJECT=${input:robotProject}"

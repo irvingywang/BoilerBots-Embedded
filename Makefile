@@ -50,6 +50,7 @@ $(BOARD_BASE)/Core/Src/usart.c \
 $(BOARD_BASE)/Core/Src/stm32f4xx_it.c \
 $(BOARD_BASE)/Core/Src/stm32f4xx_hal_msp.c \
 $(BOARD_BASE)/Core/Src/stm32f4xx_hal_timebase_tim.c \
+$(BOARD_BASE)/Core/Src/system_stm32f4xx.c \
 $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
 $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
 $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
@@ -70,7 +71,6 @@ $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
 $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 $(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-$(BOARD_BASE)/Core/Src/system_stm32f4xx.c \
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/list.c \
@@ -179,15 +179,26 @@ LIBS = -lc -lm -lnosys
 LIBDIR = 
 LDFLAGS = $(MCU) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -Wl,--print-memory-usage -u _printf_float
 
+# Color definitions for terminal output
+COLOR_RESET = \033[0m
+COLOR_RED = \033[31m
+COLOR_GREEN = \033[32m
+COLOR_YELLOW = \033[33m
+COLOR_BLUE = \033[34m
+COLOR_MAGENTA = \033[35m
+COLOR_CYAN = \033[36m
+COLOR_BOLD = \033[1m
+
 # default action: build all
-all: print_info $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
+all: print_info 
+	@echo "${COLOR_YELLOW}Compiling...${COLOR_RESET}"
+	@$(MAKE) --no-print-directory $(BUILD_DIR)/$(TARGET).bin
+	@echo "${COLOR_GREEN}${COLOR_BOLD}Build successful!${COLOR_RESET}"
 
 # Add a print statement to debug which sources are being compiled
 print_info:
-	@echo "=== Building robot project: $(ROBOT_PROJECT) ==="
-	@echo "=== Available robot projects: $(ROBOT_PROJECTS) ==="
-	@echo "=== Output will be named: $(BUILD_DIR)/$(TARGET).elf ==="
-	@echo "=== Compiler: $(CC) ==="
+	@echo "${COLOR_CYAN}${COLOR_BOLD}=== Building robot project: ${COLOR_MAGENTA}$(ROBOT_PROJECT)${COLOR_CYAN} ===${COLOR_RESET}"
+	@echo "${COLOR_CYAN}${COLOR_BOLD}=== Output: ${COLOR_MAGENTA}$(BUILD_DIR)/$(TARGET).bin${COLOR_CYAN} ===${COLOR_RESET}"
 
 #######################################
 # build the application
@@ -200,20 +211,21 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@ || \
+	(echo "${COLOR_RED}${COLOR_BOLD}Error compiling $<${COLOR_RESET}" && exit 1)
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	@$(AS) -c $(CFLAGS) $< -o $@
+	@$(AS) -c $(CFLAGS) $< -o $@ || \
+	(echo "${COLOR_RED}${COLOR_BOLD}Error assembling $<${COLOR_RESET}" && exit 1)
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	$(SZ) $@
+$(BUILD_DIR)/$(TARGET).bin: $(OBJECTS) Makefile
+	@echo "${COLOR_YELLOW}Linking...${COLOR_RESET}"
+	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@ || \
+	(echo "${COLOR_RED}${COLOR_BOLD}Error linking $@${COLOR_RESET}" && exit 1)
+	@$(SZ) $@
 
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(HEX) $< $@
-	
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(BIN) $< $@	
+$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.bin | $(BUILD_DIR)
+	@$(BIN) $< $@	
 	
 $(BUILD_DIR):
 	@mkdir $@		
@@ -222,7 +234,9 @@ $(BUILD_DIR):
 # clean up
 #######################################
 clean:
-	rm -rf $(BUILD_DIR)
+	@echo "${COLOR_YELLOW}Cleaning build directory: $(BUILD_DIR)${COLOR_RESET}"
+	@rm -rf $(BUILD_DIR)
+	@echo "${COLOR_GREEN}Clean complete${COLOR_RESET}"
 
 #######################################
 # dependencies
@@ -252,14 +266,13 @@ ECHO_WARNING=echo "\033[33m[Warning]\033[0m"
 ECHO_SUCCESS=echo "\033[32m[Success]\033[0m"
 
 flash:
-	@echo "Attempting to use CMSIS-DAP..."
+	@echo "${COLOR_CYAN}${COLOR_BOLD}Attempting to flash device...${COLOR_RESET}"
 	@openocd -d2 -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
-	($(ECHO_SUCCESS) "Successfully programmed the device using CMSIS-DAP.") || \
-	($(ECHO_WARNING) "Failed to connect using CMSIS-DAP. Attempting to use STLink..." && \
+	(echo "${COLOR_GREEN}${COLOR_BOLD}[Success] Device programmed using CMSIS-DAP.${COLOR_RESET}") || \
+	(echo "${COLOR_YELLOW}${COLOR_BOLD}[Warning] Trying STLink...${COLOR_RESET}" && \
 	openocd -d2 -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
-	($(ECHO_SUCCESS) "Successfully programmed the device using STLink.") || \
-	($(ECHO_WARNING) "Failed to connect using both CMSIS-DAP and STLink. Please check your connections and try again."))
-
+	(echo "${COLOR_GREEN}${COLOR_BOLD}[Success] Device programmed using STLink.${COLOR_RESET}") || \
+	(echo "${COLOR_RED}${COLOR_BOLD}[Error] Flash failed. Check connections.${COLOR_RESET}"))
 
 print_sources:
 	@echo "C sources:" $(C_SOURCES)
