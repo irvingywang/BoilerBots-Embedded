@@ -36,6 +36,30 @@
             }
         },
         {
+            "label": "Rebuild Robot",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "clean",
+                "&&",
+                "make",
+                "-j",
+                "V=1",
+                "ROBOT_PROJECT=${input:robotProject}"
+            ],
+            "dependsOn": "Clear Terminal",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
             "label": "Clean All",
             "type": "shell",
             "command": "rm -rf build && mkdir build",
