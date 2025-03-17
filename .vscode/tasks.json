@@ -2,12 +2,31 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Switch Robot Project",
+            "label": "Clear Terminal",
             "type": "shell",
-            "command": "make -j",
+            "command": "clear",
+            "presentation": {
+                "reveal": "never",
+                "panel": "shared",
+                "clear": true
+            },
+            "group": "none",
+            "hide": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Robot",
+            "type": "shell",
+            "command": "make",
             "args": [
+                "clean",
+                "&&",
+                "make",
+                "-j",
+                "V=1",
                 "ROBOT_PROJECT=${input:robotProject}"
             ],
+            "dependsOn": "Clear Terminal",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -15,62 +34,20 @@
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "Build Current Robot Project",
-            "type": "shell",
-            "command": "make -j",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "Flash Current Robot Project",
-            "type": "shell",
-            "command": "make flash",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "Clean Current Robot Project",
-            "type": "shell",
-            "command": "make clean_robot",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
+                "panel": "shared",
+                "clear": true
             }
         },
         {
             "label": "Clean All",
             "type": "shell",
-            "command": "make clean",
+            "command": "rm -rf build && mkdir build",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "Clean Shared Library",
-            "type": "shell",
-            "command": "make clean_lib",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
+                "panel": "shared",
+                "clear": true
             }
         }
     ],
@@ -81,7 +58,7 @@
             "description": "Select the robot project to build",
             "options": [
                 "Swerve-Standard",
-                "Template",
+                "Template"
                 // Add your other robot projects here
             ]
         }
