@@ -36,30 +36,6 @@
             }
         },
         {
-            "label": "Rebuild",
-            "type": "shell",
-            "command": "make",
-            "args": [
-                "clean",
-                "&&",
-                "make",
-                "-j",
-                "V=1",
-                "ROBOT_PROJECT=${input:robotProject}"
-            ],
-            "dependsOn": "Clear Terminal",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            }
-        },
-        {
             "label": "Flash",
             "type": "shell",
             "command": "make",
@@ -77,7 +53,7 @@
             }
         },
         {
-            "label": "Clean All",
+            "label": "Clean",
             "type": "shell",
             "command": "rm -rf build && mkdir build",
             "group": "build",
@@ -87,7 +63,43 @@
                 "panel": "shared",
                 "clear": true
             }
-        }
+        },
+        {
+            "label": "Build and Flash",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build",
+                "Flash"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Rebuild",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean",
+                "Build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
     ],
     "inputs": [
         {
@@ -96,7 +108,7 @@
             "description": "Select the robot project to build",
             "options": [
                 "Swerve-Standard",
-                "Template"
+                //"Template"
                 // Add your other robot projects here
             ]
         }

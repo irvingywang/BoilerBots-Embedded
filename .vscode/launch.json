@@ -49,7 +49,7 @@
             "description": "Select the robot project to debug",
             "options": [
                 "Swerve-Standard",
-                "Template"
+                //"Template"
                 // Add your other robot projects here
             ]
         }
