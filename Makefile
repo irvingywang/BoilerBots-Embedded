@@ -192,13 +192,13 @@ COLOR_BOLD = \033[1m
 # default action: build all
 all: print_info 
 	@echo "${COLOR_YELLOW}Compiling...${COLOR_RESET}"
-	@$(MAKE) --no-print-directory $(BUILD_DIR)/$(TARGET).bin
+	@$(MAKE) --no-print-directory $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 	@echo "${COLOR_GREEN}${COLOR_BOLD}Build successful!${COLOR_RESET}"
 
 # Add a print statement to debug which sources are being compiled
 print_info:
-	@echo "${COLOR_CYAN}${COLOR_BOLD}=== Building robot project: ${COLOR_MAGENTA}$(ROBOT_PROJECT)${COLOR_CYAN} ===${COLOR_RESET}"
-	@echo "${COLOR_CYAN}${COLOR_BOLD}=== Output: ${COLOR_MAGENTA}$(BUILD_DIR)/$(TARGET).bin${COLOR_CYAN} ===${COLOR_RESET}"
+	@echo "${COLOR_CYAN}${COLOR_BOLD}Building robot project: ${COLOR_MAGENTA}$(ROBOT_PROJECT)${COLOR_CYAN}"
+	@echo "${COLOR_CYAN}${COLOR_BOLD}Output directory: ${COLOR_MAGENTA}$(BUILD_DIR)/"
 
 #######################################
 # build the application
@@ -218,11 +218,15 @@ $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	@$(AS) -c $(CFLAGS) $< -o $@ || \
 	(echo "${COLOR_RED}${COLOR_BOLD}Error assembling $<${COLOR_RESET}" && exit 1)
 
-$(BUILD_DIR)/$(TARGET).bin: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
 	@echo "${COLOR_YELLOW}Linking...${COLOR_RESET}"
 	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@ || \
 	(echo "${COLOR_RED}${COLOR_BOLD}Error linking $@${COLOR_RESET}" && exit 1)
 	@$(SZ) $@
+
+$(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
+	@$(BIN) $< $@
+	@echo "${COLOR_CYAN}Generated binary: $@${COLOR_RESET}"
 
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.bin | $(BUILD_DIR)
 	@$(BIN) $< $@	
@@ -253,10 +257,10 @@ ECHO_SUCCESS_POWERSHELL=powershell Write-Host -ForegroundColor Green [Success]:
 
 flash_powershell:
 	@echo "Attempting to use CMSIS-DAP..."
-	@openocd -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	@openocd -f config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	($(ECHO_SUCCESS_POWERSHELL) "Successfully programmed the device using CMSIS-DAP.") || \
 	($(ECHO_WARNING_POWERSHELL) "Failed to connect using CMSIS-DAP. Attempting to use STLink..." && \
-	openocd -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	openocd -f config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	($(ECHO_SUCCESS_POWERSHELL) "Successfully programmed the device using STLink.") || \
 	($(ECHO_WARNING_POWERSHELL) "Failed to connect using both CMSIS-DAP and STLink. Please check your connections and try again."))
 
@@ -267,10 +271,10 @@ ECHO_SUCCESS=echo "\033[32m[Success]\033[0m"
 
 flash:
 	@echo "${COLOR_CYAN}${COLOR_BOLD}Attempting to flash device...${COLOR_RESET}"
-	@openocd -d2 -f $(CONTROL_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	@openocd -d2 -f config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	(echo "${COLOR_GREEN}${COLOR_BOLD}[Success] Device programmed using CMSIS-DAP.${COLOR_RESET}") || \
 	(echo "${COLOR_YELLOW}${COLOR_BOLD}[Warning] Trying STLink...${COLOR_RESET}" && \
-	openocd -d2 -f $(CONTROL_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
+	openocd -d2 -f config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown && \
 	(echo "${COLOR_GREEN}${COLOR_BOLD}[Success] Device programmed using STLink.${COLOR_RESET}") || \
 	(echo "${COLOR_RED}${COLOR_BOLD}[Error] Flash failed. Check connections.${COLOR_RESET}"))
 

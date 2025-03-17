@@ -15,7 +15,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Build Robot",
+            "label": "Build",
             "type": "shell",
             "command": "make",
             "args": [
@@ -36,7 +36,7 @@
             }
         },
         {
-            "label": "Rebuild Robot",
+            "label": "Rebuild",
             "type": "shell",
             "command": "make",
             "args": [
@@ -52,6 +52,23 @@
                 "kind": "build",
                 "isDefault": true
             },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Flash",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "flash",
+                "ROBOT_PROJECT=${input:robotProject}"
+            ],
+            "dependsOn": "Clear Terminal",
+            "group": "build",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",
