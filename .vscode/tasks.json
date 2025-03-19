@@ -20,9 +20,15 @@
             "command": "make",
             "args": [
                 "-j",
-                "V=1",
                 "ROBOT_PROJECT=${input:robotProject}"
             ],
+            "windows": {
+                "command": "mingw32-make",
+                "args": [
+                    "-j",
+                    "ROBOT_PROJECT=${input:robotProject}"
+                ]
+            },
             "dependsOn": "Clear Terminal",
             "group": {
                 "kind": "build",
@@ -43,6 +49,13 @@
                 "flash",
                 "ROBOT_PROJECT=${input:robotProject}"
             ],
+            "windows": {
+                "command": "mingw32-make",
+                "args": [
+                    "flash_powershell",
+                    "ROBOT_PROJECT=${input:robotProject}"
+                ]
+            },
             "dependsOn": "Clear Terminal",
             "group": "build",
             "problemMatcher": [],
@@ -55,7 +68,16 @@
         {
             "label": "Clean",
             "type": "shell",
-            "command": "rm -rf build && mkdir build",
+            "command": "make",
+            "args": [
+                "clean",
+            ],
+            "windows": {
+                "command": "mingw32-make",
+                "args": [
+                    "clean_powershell",
+                ]
+            },
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -99,7 +121,7 @@
                 "panel": "shared",
                 "clear": true
             }
-        },
+        }
     ],
     "inputs": [
         {

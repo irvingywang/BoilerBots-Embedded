@@ -193,9 +193,15 @@ $(BUILD_DIR):
 
 # Clean build files
 clean:
-	@echo "${COLOR_YELLOW}Cleaning build directory: $(BUILD_DIR)${COLOR_RESET}"
-	@rm -rf $(BUILD_DIR)
+	@echo "${COLOR_YELLOW}Cleaning build directory: build${COLOR_RESET}"
+	@rm -rf build
 	@echo "${COLOR_GREEN}Clean complete${COLOR_RESET}"
+
+# Clean for Windows
+clean_powershell:
+	@echo "Cleaning build directory: build"
+	@if exist build rmdir /s /q build
+	@echo "Clean complete"
 
 # ======== FLASH COMMANDS ========
 # OpenOCD commands
