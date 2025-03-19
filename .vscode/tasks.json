@@ -7,12 +7,9 @@
             "command": "clear",
             "presentation": {
                 "reveal": "never",
-                "panel": "shared",
                 "clear": true
             },
-            "group": "none",
-            "hide": true,
-            "problemMatcher": []
+            "hide": true
         },
         {
             "label": "Build",
@@ -34,9 +31,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": [],
             "presentation": {
-                "reveal": "always",
                 "panel": "shared",
                 "clear": true
             }
@@ -58,9 +53,7 @@
             },
             "dependsOn": "Clear Terminal",
             "group": "build",
-            "problemMatcher": [],
             "presentation": {
-                "reveal": "always",
                 "panel": "shared",
                 "clear": true
             }
@@ -70,18 +63,16 @@
             "type": "shell",
             "command": "make",
             "args": [
-                "clean",
+                "clean"
             ],
             "windows": {
                 "command": "mingw32-make",
                 "args": [
-                    "clean_powershell",
+                    "clean_powershell"
                 ]
             },
             "group": "build",
-            "problemMatcher": [],
             "presentation": {
-                "reveal": "always",
                 "panel": "shared",
                 "clear": true
             }
@@ -97,9 +88,7 @@
                 "kind": "build",
                 "isDefault": false
             },
-            "problemMatcher": [],
             "presentation": {
-                "reveal": "always",
                 "panel": "shared",
                 "clear": true
             }
@@ -115,9 +104,7 @@
                 "kind": "build",
                 "isDefault": false
             },
-            "problemMatcher": [],
             "presentation": {
-                "reveal": "always",
                 "panel": "shared",
                 "clear": true
             }
