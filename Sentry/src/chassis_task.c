@@ -50,7 +50,8 @@ void Chassis_Task_Init()
         CHASSIS_WHEEL_DIAMETER,
         CHASSIS_RADIUS,
         CHASSIS_MOUNTING_ANGLE,
-        CHASSIS_MAX_SPEED);
+        CHASSIS_MAX_SPEED
+    );
 
     chassis_state.v_x = 0.0f;
     chassis_state.v_y = 0.0f;
