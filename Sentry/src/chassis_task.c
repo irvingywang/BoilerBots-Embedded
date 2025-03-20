@@ -10,19 +10,14 @@
 extern Robot_State_t g_robot_state;
 extern Remote_t g_remote;
 
-#define CHASSIS_WHEEL_DIAMETER (0.15f) // m
-#define CHASSIS_RADIUS (0.21f) // center to wheel, m
-#define CHASSIS_MAX_SPEED (2.0f) // m/s
-#define CHASSIS_MOUNTING_ANGLE (PI / 4) // rad (45deg)
-#define MAX_ABC (200.0f) // rad/s
-
 DJI_Motor_Handle_t *motors[4];
 uint8_t drive_esc_id_array[4] = {1, 2, 3, 4};
 Motor_Reversal_t drive_motor_reversal_array[4] = {
     MOTOR_REVERSAL_REVERSED,
     MOTOR_REVERSAL_REVERSED,
     MOTOR_REVERSAL_REVERSED,
-    MOTOR_REVERSAL_REVERSED};
+    MOTOR_REVERSAL_REVERSED
+};
 
 omni_physical_constants_t physical_constants;
 omni_chassis_state_t chassis_state;
@@ -40,10 +35,9 @@ void Chassis_Task_Init()
             .kf = 100.0f,
             .output_limit = M3508_MAX_CURRENT,
             .integral_limit = 3000.0f,
-        }};
+    }};
 
-    for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 4; i++) {
         // configure drive motor
         drive_motor_config.speed_controller_id = drive_esc_id_array[i];
         drive_motor_config.motor_reversal = drive_motor_reversal_array[i];
@@ -62,8 +56,7 @@ void Chassis_Task_Init()
     chassis_state.v_y = 0.0f;
     chassis_state.omega = 0.0f;
 
-    for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 4; i++) {
         // configure rate limiters
         rate_limiter_init(&wheel_rate_limiters[i], MAX_ABC);
     }
