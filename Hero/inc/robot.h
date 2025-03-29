@@ -4,6 +4,8 @@
 #include "user_math.h"
 #include <stdint.h>
 
+#define KEYBOARD_RAMP_COEF (0.004f)
+
 typedef enum Robot_State_e {
     // Primary Enable Modes
     STARTING_UP,

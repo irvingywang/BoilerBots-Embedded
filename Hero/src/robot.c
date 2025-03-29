@@ -16,6 +16,8 @@ Robot_State_t g_robot_state = {0};
 extern Remote_t g_remote;
 extern Supercap_t g_supercap;
 
+Input_State_t g_input_state = {0};
+
 /**
  * @brief This function initializes the robot.
  * This means setting the state to STARTING_UP,
@@ -98,16 +100,51 @@ void Handle_Disabled_State()
 
 void Process_Remote_Input()
 {
-    g_robot_state.input.vx = g_remote.controller.left_stick.x;
-    g_robot_state.input.vy = g_remote.controller.left_stick.y;
+    // Process remote input
+    g_robot_state.input.vy_keyboard = ((1.0f - KEYBOARD_RAMP_COEF) * g_robot_state.input.vy_keyboard + g_remote.keyboard.W * KEYBOARD_RAMP_COEF - g_remote.keyboard.S * KEYBOARD_RAMP_COEF);
+    g_robot_state.input.vx_keyboard = ((1.0f - KEYBOARD_RAMP_COEF) * g_robot_state.input.vx_keyboard - g_remote.keyboard.A * KEYBOARD_RAMP_COEF + g_remote.keyboard.D * KEYBOARD_RAMP_COEF);
+    float temp_x = g_robot_state.input.vx_keyboard + g_remote.controller.left_stick.x / REMOTE_STICK_MAX;
+    float temp_y = g_robot_state.input.vy_keyboard + g_remote.controller.left_stick.y / REMOTE_STICK_MAX;
+    g_robot_state.input.vx = temp_x;
+    g_robot_state.input.vy = temp_y;
     g_robot_state.input.vomega = g_remote.controller.right_stick.x;
-    
-    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_robot_state.input.prev_left_switch, MID))
+
+
+    // Calculate Gimbal Oriented Control
+
+    // TODO: Add back in
+    // float theta = DJI_Motor_Get_Absolute_Angle(g_yaw);
+    // g_robot_state.chassis.x_speed = -g_robot_state.input.vy * sin(theta) + g_robot_state.input.vx * cos(theta);
+    // g_robot_state.chassis.y_speed = g_robot_state.input.vy * cos(theta) + g_robot_state.input.vx * sin(theta);
+
+    // g_robot_state.gimbal.yaw_angle -= (g_remote.controller.right_stick.x / 50000.0f + g_remote.mouse.x / 10000.0f);    // controller and mouse
+    // g_robot_state.gimbal.pitch_angle -= (g_remote.controller.right_stick.y / 100000.0f - g_remote.mouse.y / 50000.0f);
+
+    // keyboard toggles
+    if (__IS_TOGGLED(g_remote.keyboard.B, g_input_state.prev_B))
+    {
+        g_robot_state.launch.IS_FIRING_ENABLED ^= 0x01; // Toggle firing
+    }
+    if (__IS_TOGGLED(g_remote.keyboard.B, g_input_state.prev_B))
+    {
+        g_robot_state.chassis.IS_SPINTOP_ENABLED ^= 0x01; // Toggle spintop
+    }
+    if (__IS_TOGGLED(g_remote.keyboard.B, g_input_state.prev_B))
+    {
+        g_robot_state.UI_ENABLED ^= 0x01; // Toggle UI
+    }
+    if (__IS_TOGGLED(g_remote.keyboard.Shift, g_input_state.prev_Shift))
+    {
+        g_robot_state.IS_SUPER_CAPACITOR_ENABLED ^= 0x01; // Toggle supercap
+    }
+
+    // controller toggles
+    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, MID))
     {
         g_robot_state.chassis.IS_SPINTOP_ENABLED = 1;
     }
-    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_robot_state.input.prev_left_switch, DOWN) ||
-        __IS_TRANSITIONED(g_remote.controller.left_switch, g_robot_state.input.prev_left_switch, UP))
+    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, DOWN) ||
+        __IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, UP))
     {
         g_robot_state.chassis.IS_SPINTOP_ENABLED = 0;
     }
@@ -117,18 +154,17 @@ void Process_Remote_Input()
 
 void Process_Chassis_Control()
 {
-    // USER CODE HERE
     Chassis_Ctrl_Loop();
 }
 
 void Process_Gimbal_Control()
 {
-    // USER CODE HERE
+    Gimbal_Ctrl_Loop();
 }
 
 void Process_Launch_Control()
 {
-    // USER CODE HERE
+    Launch_Ctrl_Loop();
 }
 
 /**

@@ -2,6 +2,7 @@
 #define USER_MATH_H
 
 #define PI (3.1415926f)
+#define TAU (6.2831852f)
 #define PI_OVER_2 (PI / 2.0f)
 
 #define __MAX_LIMIT(val, min, max)     \
