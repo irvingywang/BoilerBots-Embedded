@@ -118,6 +118,7 @@
             "options": [
                 "Swerve-Standard",
                 "Sentry",
+                "Hero"
                 //"Template"
                 // Add your other robot projects here
             ]

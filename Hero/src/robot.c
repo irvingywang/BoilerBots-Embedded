@@ -98,22 +98,37 @@ void Handle_Disabled_State()
 
 void Process_Remote_Input()
 {
-    // USER CODE HERE
+    g_robot_state.input.vx = g_remote.controller.left_stick.x;
+    g_robot_state.input.vy = g_remote.controller.left_stick.y;
+    g_robot_state.input.vomega = g_remote.controller.right_stick.x;
+    
+    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_robot_state.input.prev_left_switch, MID))
+    {
+        g_robot_state.chassis.IS_SPINTOP_ENABLED = 1;
+    }
+    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_robot_state.input.prev_left_switch, DOWN) ||
+        __IS_TRANSITIONED(g_remote.controller.left_switch, g_robot_state.input.prev_left_switch, UP))
+    {
+        g_robot_state.chassis.IS_SPINTOP_ENABLED = 0;
+    }
+
+    g_robot_state.input.prev_left_switch = g_remote.controller.left_switch;
 }
 
 void Process_Chassis_Control()
 {
-     // USER CODE HERE
+    // USER CODE HERE
+    Chassis_Ctrl_Loop();
 }
 
 void Process_Gimbal_Control()
 {
-     // USER CODE HERE
+    // USER CODE HERE
 }
 
 void Process_Launch_Control()
 {
-     // USER CODE HERE
+    // USER CODE HERE
 }
 
 /**

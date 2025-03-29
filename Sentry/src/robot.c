@@ -117,17 +117,17 @@ void Process_Remote_Input()
 
 void Process_Chassis_Control()
 {
-     Chassis_Ctrl_Loop();
+    Chassis_Ctrl_Loop();
 }
 
 void Process_Gimbal_Control()
 {
-     // USER CODE HERE
+    // USER CODE HERE
 }
 
 void Process_Launch_Control()
 {
-     // USER CODE HERE
+    // USER CODE HERE
 }
 
 /**
