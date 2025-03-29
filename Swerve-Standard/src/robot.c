@@ -184,6 +184,13 @@ void Process_Remote_Input()
         g_robot_state.launch.fire_mode = NO_FIRE;
     }
 
+    if (__IS_TOGGLED(g_remote.keyboard.V, g_input_state.prev_V)) { // switch to burst later
+        g_robot_state.launch.fire_mode = SINGLE_FIRE;
+    }
+    if (__IS_TOGGLED(g_remote.keyboard.G, g_input_state.prev_G)) {
+        g_robot_state.launch.fire_mode = FULL_AUTO;
+    } 
+
     // cycle burst flags with keyboard
     // TODO: assign a key for this
     // if (__IS_TOGGLED(g_remote.keyboard.G, g_input_state.prev_G))
