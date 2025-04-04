@@ -21,7 +21,7 @@ void Launch_Task_Init() {
     // Init Launch Hardware
     Motor_Config_t flywheel_left_config = {
         .can_bus = 1,
-        .speed_controller_id = 4,
+        .speed_controller_id = 5,
         .offset = 0,
         .control_mode = VELOCITY_CONTROL,
         .motor_reversal = MOTOR_REVERSAL_NORMAL,
@@ -34,7 +34,7 @@ void Launch_Task_Init() {
 
     Motor_Config_t flywheel_right_config = {
         .can_bus = 1,
-        .speed_controller_id = 5,
+        .speed_controller_id = 4,
         .offset = 0,
         .control_mode = VELOCITY_CONTROL,
         .motor_reversal = MOTOR_REVERSAL_REVERSED,
@@ -68,9 +68,9 @@ void Launch_Task_Init() {
             }
     };
 
-    g_flywheel_left = DJI_Motor_Init(&flywheel_left_config,M3508);
-    g_flywheel_right = DJI_Motor_Init(&flywheel_right_config,M3508);
-    g_feed_motor = DJI_Motor_Init(&feed_speed_config,M2006);
+    g_flywheel_left = DJI_Motor_Init(&flywheel_left_config, M3508);
+    g_flywheel_right = DJI_Motor_Init(&flywheel_right_config, M3508);
+    g_feed_motor = DJI_Motor_Init(&feed_speed_config, M2006);
 
     Laser_Init();
 }

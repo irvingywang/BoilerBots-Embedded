@@ -56,7 +56,7 @@ void Handle_Starting_Up_State()
     Supercap_Init(&g_supercap);
     Chassis_Task_Init();
     Gimbal_Task_Init();
-    Launch_Task_Init();
+    // Launch_Task_Init();
     Jetson_Orin_Init(&huart1); // ! temp uart1
 
     Remote_Init(&huart3);

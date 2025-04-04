@@ -11,10 +11,12 @@
 #include "buzzer.h"
 #include "supercap.h"
 #include "dji_motor.h"
+#include "dm_motor.h"
 
 Robot_State_t g_robot_state = {0};
 extern Remote_t g_remote;
 extern Supercap_t g_supercap;
+extern DJI_Motor_Handle_t* g_yaw_motor;
 
 Input_State_t g_input_state = {0};
 
@@ -75,7 +77,7 @@ void Handle_Enabled_State()
         Process_Remote_Input();
         Process_Chassis_Control();
         Process_Gimbal_Control();
-        Process_Launch_Control();
+        // Process_Launch_Control();
     }
 }
 
@@ -86,6 +88,7 @@ void Handle_Enabled_State()
 void Handle_Disabled_State()
 {
     DJI_Motor_Disable_All();
+    DM_Motor_Disable_All();
     //  Disable all major components
     g_robot_state.launch.IS_FLYWHEEL_ENABLED = 0;
     g_robot_state.chassis.x_speed = 0;
@@ -95,6 +98,7 @@ void Handle_Disabled_State()
     {
         g_robot_state.state = ENABLED;
         DJI_Motor_Enable_All();
+        DM_Motor_Enable_All();
     }
 }
 
@@ -107,18 +111,25 @@ void Process_Remote_Input()
     float temp_y = g_robot_state.input.vy_keyboard + g_remote.controller.left_stick.y / REMOTE_STICK_MAX;
     g_robot_state.input.vx = temp_x;
     g_robot_state.input.vy = temp_y;
-    g_robot_state.input.vomega = g_remote.controller.right_stick.x;
+    // g_robot_state.input.vomega = g_remote.controller.right_stick.x;
 
 
     // Calculate Gimbal Oriented Control
 
     // TODO: Add back in
-    // float theta = DJI_Motor_Get_Absolute_Angle(g_yaw);
-    // g_robot_state.chassis.x_speed = -g_robot_state.input.vy * sin(theta) + g_robot_state.input.vx * cos(theta);
-    // g_robot_state.chassis.y_speed = g_robot_state.input.vy * cos(theta) + g_robot_state.input.vx * sin(theta);
+    float theta = DJI_Motor_Get_Absolute_Angle(g_yaw_motor);
+    g_robot_state.chassis.x_speed = -g_robot_state.input.vy * sin(theta) + g_robot_state.input.vx * cos(theta);
+    g_robot_state.chassis.y_speed = g_robot_state.input.vy * cos(theta) + g_robot_state.input.vx * sin(theta);
 
-    // g_robot_state.gimbal.yaw_angle -= (g_remote.controller.right_stick.x / 50000.0f + g_remote.mouse.x / 10000.0f);    // controller and mouse
-    // g_robot_state.gimbal.pitch_angle -= (g_remote.controller.right_stick.y / 100000.0f - g_remote.mouse.y / 50000.0f);
+    // Gimbal control
+    g_robot_state.gimbal.yaw_angle -= (
+        g_remote.controller.right_stick.x * YAW_CONTORLLER_VELOCITY_COEF +
+        g_remote.mouse.x * YAW_MOUSE_VELOCITY_COEF
+    );
+    g_robot_state.gimbal.pitch_angle -= (
+        g_remote.controller.right_stick.y * PITCH_CONTROLLER_VELOCITY_COEF - 
+        g_remote.mouse.y * PITCH_MOUSE_VELOCITY_COEF
+    );
 
     // keyboard toggles
     if (__IS_TOGGLED(g_remote.keyboard.B, g_input_state.prev_B))
@@ -147,6 +158,37 @@ void Process_Remote_Input()
         __IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, UP))
     {
         g_robot_state.chassis.IS_SPINTOP_ENABLED = 0;
+    }
+
+    if (g_remote.controller.left_switch == UP)
+    {
+        g_robot_state.launch.IS_FIRING_ENABLED = 1;
+    }
+    else
+    {
+        g_robot_state.launch.IS_FIRING_ENABLED = 0;
+    }
+
+    if ((g_remote.controller.right_switch == UP) || (g_remote.mouse.right == 1)) // mouse right button auto aim
+    {
+        g_robot_state.launch.IS_AUTO_AIMING_ENABLED = 1;
+    }
+    else
+    {
+        g_robot_state.launch.IS_AUTO_AIMING_ENABLED = 0;
+    }
+
+    if (g_remote.controller.wheel < -50.0f)
+    { // dial wheel forward single fire
+        g_robot_state.launch.fire_mode = SINGLE_FIRE;
+    }
+    else if (g_remote.controller.wheel > 50.0f)
+    { // dial wheel backward burst `fire
+        g_robot_state.launch.fire_mode = FULL_AUTO;
+    }
+    else
+    { // dial wheel mid stop fire
+        g_robot_state.launch.fire_mode = NO_FIRE;
     }
 
     g_robot_state.input.prev_left_switch = g_remote.controller.left_switch;

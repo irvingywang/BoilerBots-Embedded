@@ -4,7 +4,10 @@
         {
             "label": "Clear Terminal",
             "type": "shell",
-            "command": "clear",
+            "command": "clear", // Default for non-Windows
+            "windows": {
+                "command": "cls" // Specific for Windows
+            },
             "presentation": {
                 "reveal": "never",
                 "clear": true
