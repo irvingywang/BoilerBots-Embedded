@@ -28,14 +28,16 @@ void Chassis_Task_Init()
 {
     // Init chassis hardware
     Motor_Config_t drive_motor_config = {
-        .can_bus = 1,
+        .can_bus = 2,
         .control_mode = VELOCITY_CONTROL,
-        .velocity_pid = {
-            .kp = 500.0f,
-            .kf = 100.0f,
-            .output_limit = M3508_MAX_CURRENT,
-            .integral_limit = 3000.0f,
-    }};
+        .velocity_pid =
+            {
+                .kp = 500.0f,
+                .kf = 100.0f,
+                .output_limit = M3508_MAX_CURRENT,
+                .integral_limit = 3000.0f,
+            },
+    };
 
     for (int i = 0; i < 4; i++) {
         // configure drive motor
