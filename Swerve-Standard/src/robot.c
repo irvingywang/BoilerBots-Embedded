@@ -21,7 +21,7 @@ extern DJI_Motor_Handle_t *g_yaw;
 
 Input_State_t g_input_state = {0};
 
-#define KEYBOARD_RAMP_COEF (0.004f)
+#define KEYBOARD_RAMP_COEF (0.01f)
 
 /**
  * @brief This function initializes the robot.
@@ -43,8 +43,6 @@ void Robot_Init()
 
     // Initialize all tasks
     Robot_Tasks_Start();
-
-    g_robot_state.UI_ENABLED = 1;
 }
 
 /**
@@ -156,18 +154,6 @@ void Process_Remote_Input()
 
     if (__IS_TOGGLED(g_remote.keyboard.B, g_input_state.prev_B)) { // Toggle spintop with B
         g_robot_state.chassis.IS_SPINTOP_ENABLED ^= 0x01;
-    }
-
-    // controller toggles
-    if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, MID))
-    {
-        g_robot_state.chassis.IS_SPINTOP_ENABLED = 1;
-        g_robot_state.launch.IS_FIRING_ENABLED = 1;
-    } if (__IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, DOWN) ||
-        __IS_TRANSITIONED(g_remote.controller.left_switch, g_input_state.prev_left_switch, UP))
-    {
-        g_robot_state.chassis.IS_SPINTOP_ENABLED = 0;
-        g_robot_state.launch.IS_FIRING_ENABLED = 0;
     }
 
     // Update previous states keyboard
