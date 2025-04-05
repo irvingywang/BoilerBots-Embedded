@@ -12,7 +12,7 @@
 #define YAW_OFFSET (0.0f)
 
 #define PITCH_CONTROLLER_VELOCITY_COEF (4e-5f)
-#define YAW_CONTORLLER_VELOCITY_COEF (5e-5f)
+#define YAW_CONTORLLER_VELOCITY_COEF (5e-6f)
 
 #define PITCH_MOUSE_VELOCITY_COEF (5e-5f)
 #define YAW_MOUSE_VELOCITY_COEF (1e-5f)
@@ -22,7 +22,7 @@
 // Degrees per second
 
 #define PITCH_RATE_LIMIT (16.0f)
-#define YAW_RATE_LIMIT (1.0f)
+#define YAW_RATE_LIMIT (16.0f)
 
 typedef struct
 {
