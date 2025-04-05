@@ -101,6 +101,26 @@ void Chassis_Task_Init()
 
 void Chassis_Ctrl_Loop()
 {
+    float vx = g_robot_state.input.vx;
+    float vy = g_robot_state.input.vy;
+
+    if (g_robot_state.IS_SUPER_CAPACITOR_ENABLED) {
+        g_swerve_constants.max_speed = 3.0;
+        for (int i = 0; i < NUMBER_OF_MODULES; i++) {
+            chassis_vel_limiters[i].rate_limit = 4.0;
+        }
+    } // Quick Deceleration when the joystick is released
+    else if ((vx * vx + vy * vy) < 0.01f) {
+        for (int i = 0; i < NUMBER_OF_MODULES; i++) {
+            chassis_vel_limiters[i].rate_limit = SWERVE_QUICK_STOP_ACCEL;
+        }
+    } else {
+        g_swerve_constants.max_speed = SWERVE_MAX_SPEED;
+        for (int i = 0; i < NUMBER_OF_MODULES; i++) {
+            chassis_vel_limiters[i].rate_limit = SWERVE_MAX_WHEEL_ACCEL;
+        }
+    }
+
     // Control loop for the chassis
     for (int i = 0; i < NUMBER_OF_MODULES; i++) {
         measured_angles[i] = DJI_Motor_Get_Absolute_Angle(g_azimuth_motors[i]);
@@ -126,19 +146,6 @@ void Chassis_Ctrl_Loop()
     swerve_calculate_kinematics(&g_chassis_state, &g_swerve_constants);
     swerve_optimize_module_angles(&g_chassis_state, measured_angles);
     swerve_desaturate_wheel_speeds(&g_chassis_state, &g_swerve_constants);
-    float vx = g_robot_state.input.vx;
-    float vy = g_robot_state.input.vy;
-
-    // Quick Deceleration when the joystick is released
-    if ((vx * vx + vy * vy) < 0.01f) {
-        for (int i = 0; i < NUMBER_OF_MODULES; i++) {
-            chassis_vel_limiters[i].rate_limit = SWERVE_QUICK_STOP_ACCEL;
-        }
-    } else {
-        for (int i = 0; i < NUMBER_OF_MODULES; i++) {
-            chassis_vel_limiters[i].rate_limit = SWERVE_MAX_WHEEL_ACCEL;
-        }
-    }
     
     // rate limit the module speeds
     for (int i = 0; i < NUMBER_OF_MODULES; i++) {

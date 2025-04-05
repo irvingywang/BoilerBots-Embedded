@@ -165,10 +165,14 @@ void Process_Remote_Input()
     if ((g_remote.controller.right_switch == UP) || (g_remote.mouse.right == 1)) // mouse right button auto aim
     {
         g_robot_state.launch.IS_AUTO_AIMING_ENABLED = 1;
+        g_supercap.supercap_enabled_flag = 1;
+        g_robot_state.IS_SUPER_CAPACITOR_ENABLED = 1;
     }
     else
     {
         g_robot_state.launch.IS_AUTO_AIMING_ENABLED = 0;
+        g_supercap.supercap_enabled_flag = 0;
+        g_robot_state.IS_SUPER_CAPACITOR_ENABLED = 0;
     }
 
     if (g_remote.controller.wheel < -50.0f)
