@@ -94,11 +94,11 @@ void Gimbal_Ctrl_Loop()
     // g_robot_state.gimbal.yaw_angle = fmod(g_robot_state.gimbal.yaw_angle, TAU);
     __MAX_LIMIT(g_robot_state.gimbal.pitch_angle, PITCH_LOWER_LIMIT, PITCH_UPPER_LIMIT);
 
-    // g_robot_state.gimbal.yaw_angle = rate_limiter_iterate(&g_yaw_rate_limiter, g_robot_state.gimbal.yaw_angle);
+    // g_robot_state.gimbal.yaw_angle = rate_limiter_iterate(&g_yaw_raste_limiter, g_robot_state.gimbal.yaw_angle);
     g_robot_state.gimbal.pitch_angle = rate_limiter_iterate(&g_pitch_rate_limiter,
          g_robot_state.gimbal.pitch_angle);
 
-    DJI_Motor_Set_Angle(g_yaw_motor, g_robot_state.gimbal.yaw_angle);
+    // DJI_Motor_Set_Angle(g_yaw_motor, g_robot_state.gimbal.yaw_angle);
 
     // DJI_Motor_Set_Angle(g_pitch_motor, g_robot_state.gimbal.pitch_angle);
     DM_Motor_Ctrl_MIT(g_pitch_motor, g_robot_state.gimbal.pitch_angle, 0.0f, 0.0f);

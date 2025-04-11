@@ -107,17 +107,16 @@ void Process_Remote_Input()
     // Process remote input
     g_robot_state.input.vy_keyboard = ((1.0f - KEYBOARD_RAMP_COEF) * g_robot_state.input.vy_keyboard + g_remote.keyboard.W * KEYBOARD_RAMP_COEF - g_remote.keyboard.S * KEYBOARD_RAMP_COEF);
     g_robot_state.input.vx_keyboard = ((1.0f - KEYBOARD_RAMP_COEF) * g_robot_state.input.vx_keyboard - g_remote.keyboard.A * KEYBOARD_RAMP_COEF + g_remote.keyboard.D * KEYBOARD_RAMP_COEF);
+    g_robot_state.input.vomega = g_remote.controller.right_stick.x;
+
     float temp_x = g_robot_state.input.vx_keyboard + g_remote.controller.left_stick.x / REMOTE_STICK_MAX;
     float temp_y = g_robot_state.input.vy_keyboard + g_remote.controller.left_stick.y / REMOTE_STICK_MAX;
     g_robot_state.input.vx = temp_x;
     g_robot_state.input.vy = temp_y;
-    // g_robot_state.input.vomega = g_remote.controller.right_stick.x;
 
 
     // Calculate Gimbal Oriented Control
-
-    // TODO: Add back in
-    float theta = DJI_Motor_Get_Absolute_Angle(g_yaw_motor);
+    float theta = DM_Motor_Get_Absolute_Angle(g_yaw_motor);
     g_robot_state.chassis.x_speed = -g_robot_state.input.vy * sin(theta) + g_robot_state.input.vx * cos(theta);
     g_robot_state.chassis.y_speed = g_robot_state.input.vy * cos(theta) + g_robot_state.input.vx * sin(theta);
 

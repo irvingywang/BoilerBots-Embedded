@@ -165,6 +165,11 @@ void DM_Motor_Set_MIT_PD(DM_Motor_Handle_t *motor, float kp, float kd)
     motor->kd = kd;
 }
 
+float DM_Motor_Get_Absolute_Angle(DM_Motor_Handle_t *motor) {
+    return motor->stats->pos;
+}
+
+
 DM_Motor_Handle_t *DM_Motor_Init(DM_Motor_Config_t *config)
 {
     DM_Motor_Handle_t *motor = malloc(sizeof(DM_Motor_Handle_t));
