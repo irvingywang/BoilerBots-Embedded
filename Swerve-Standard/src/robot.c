@@ -52,12 +52,12 @@ void Handle_Starting_Up_State()
 {
     // Initialize all hardware
     CAN_Service_Init();
-    //Referee_System_Init(&huart1);
+    Referee_System_Init(&huart1);
     Supercap_Init(&g_supercap);
     Chassis_Task_Init();
     Gimbal_Task_Init();
-    // Launch_Task_Init();
-    Jetson_Orin_Init(&huart1); // ! temp uart1
+    Launch_Task_Init();
+    Jetson_Orin_Init(&huart6); // ! temp uart1
 
     Remote_Init(&huart3);
 
@@ -153,7 +153,7 @@ void Process_Remote_Input()
         g_robot_state.chassis.IS_SPINTOP_ENABLED = 0;
     }
 
-    if (g_remote.controller.left_switch == UP)
+    if (g_remote.controller.left_switch == MID)
     {
         g_robot_state.launch.IS_FIRING_ENABLED = 1;
     }

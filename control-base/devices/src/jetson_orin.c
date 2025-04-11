@@ -1,7 +1,7 @@
 #include "jetson_orin.h"
 
 #include <string.h>
-
+#include <math.h>
 #include "imu_task.h"
 #include "bsp_daemon.h"
 
@@ -30,6 +30,11 @@ void Jetson_Orin_Rx_Callback(UART_Instance_t *uart_instance)
 			memcpy(&g_orin_data.receiving.float_byte.data[0], &g_orin_data.rx_buffer[4], 12 * sizeof(uint8_t));
 			g_orin_data.receiving.auto_aiming.yaw = g_orin_data.receiving.float_byte.data[0];
 			g_orin_data.receiving.auto_aiming.pitch = g_orin_data.receiving.float_byte.data[1];
+			if (isnan(g_orin_data.receiving.auto_aiming.yaw) || isnan(g_orin_data.receiving.auto_aiming.pitch))
+			{
+				g_orin_data.receiving.auto_aiming.yaw = 0;
+				g_orin_data.receiving.auto_aiming.pitch = 0;
+			}
 			g_orin_data.receiving.auto_aiming.fire = g_orin_data.receiving.float_byte.data_bytes[8];
 			break;
 
@@ -95,7 +100,7 @@ void Jetson_Orin_Send_Data(void)
 	g_orin_data.sending.velocity_x = 0;
 	g_orin_data.sending.velocity_y = 0;
 	g_orin_data.sending.game_start_flag = (Referee_System.Game_Status.Progress == 4) ? 1 : 0; // 4 for match begin
-	g_orin_data.sending.enemy_color_flag = (Referee_Robot_State.ID > 11) ? 1 : 0;			  // ID > 11 means myself is blue, which means enemy is red
+	g_orin_data.sending.enemy_color_flag = (Referee_System.Robot_State.ID > 11) ? 1 : 0;			  // ID > 11 means myself is blue, which means enemy is red
 
 	// float to byte conversion
 	g_orin_data.sending.float_byte.data[0] = g_orin_data.sending.pitch_angle;
