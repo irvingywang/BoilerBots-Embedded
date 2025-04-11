@@ -65,12 +65,6 @@ void Gimbal_Task_Init()
                 .integral_limit = 1000.0f,
                 .output_limit = GM6020_MAX_CURRENT,
             },
-        // .angle_pid = {
-        //     .kp = 100000.0f,
-        //     .ki = 0.0f,
-        //     .kd = 10000.0f,
-        //     .output_limit = GM6020_MAX_CURRENT,
-        // }
     };
 
     g_yaw_motor = DJI_Motor_Init(&yaw_motor_config, GM6020);
@@ -91,7 +85,6 @@ void Gimbal_Ctrl_Loop()
         }
     }
 
-    // g_robot_state.gimbal.yaw_angle = fmod(g_robot_state.gimbal.yaw_angle, TAU);
     __MAX_LIMIT(g_robot_state.gimbal.pitch_angle, PITCH_LOWER_LIMIT, PITCH_UPPER_LIMIT);
 
     // g_robot_state.gimbal.yaw_angle = rate_limiter_iterate(&g_yaw_raste_limiter, g_robot_state.gimbal.yaw_angle);
@@ -100,6 +93,5 @@ void Gimbal_Ctrl_Loop()
 
     // DJI_Motor_Set_Angle(g_yaw_motor, g_robot_state.gimbal.yaw_angle);
 
-    // DJI_Motor_Set_Angle(g_pitch_motor, g_robot_state.gimbal.pitch_angle);
     DM_Motor_Ctrl_MIT(g_pitch_motor, g_robot_state.gimbal.pitch_angle, 0.0f, 0.0f);
 }
