@@ -8,7 +8,7 @@ ROBOT_PROJECT ?= Swerve-Standard
 TARGET = $(ROBOT_PROJECT)
 
 # Board configuration
-BOARD = typec
+BOARD = mc02
 CONTROL_BASE = control-base
 BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board
 
@@ -17,11 +17,17 @@ DEBUG = 1
 OPT = -Og
 BUILD_DIR = build/$(ROBOT_PROJECT)
 
-# Board-specific settings
+# 
 ifeq ($(BOARD), typec)
 	STARTUP_POSTFIX = stm32f407xx
 	LINK_SCRIPT_PREFIX = STM32F407IGHx
 	BOARD_C_DEF = STM32F407xx
+endif
+
+ifeq ($(BOARD), mc02)
+	STARTUP_POSTFIX = stm32h723xx
+	LINK_SCRIPT_PREFIX = STM32H723VGTx
+	BOARD_C_DEF = STM32H723xx
 endif
 
 # Find available robot projects
@@ -45,10 +51,21 @@ HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
 # ======== MCU FLAGS ========
-CPU = -mcpu=cortex-m4
-FPU = -mfpu=fpv4-sp-d16
-FLOAT-ABI = -mfloat-abi=hard
-MCU = $(CPU) -mthumb -mthumb-interwork $(FPU) $(FLOAT-ABI)
+ifeq ($(BOARD), typec)
+	CPU = -mcpu=cortex-m4
+	FPU = -mfpu=fpv4-sp-d16
+	FLOAT-ABI = -mfloat-abi=hard
+endif
+
+ifeq ($(BOARD), mc02)
+	CPU = -mcpu=cortex-m7
+	CPU = -mcpu=cortex-m7
+	FPU = -mfpu=fpv5-d16
+	FLOAT-ABI = -mfloat-abi=hard
+endif
+
+# CPU and FPU settings
+MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 
 # ======== COMPILER FLAGS ========
 # ASM flags
@@ -60,17 +77,37 @@ ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -fdata-sections -ffunction-sec
 C_DEFS = -DUSE_HAL_DRIVER -D$(BOARD_C_DEF)
 C_INCLUDES = \
 -I$(BOARD_BASE)/Core/Inc \
--I$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Inc \
--I$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -I$(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/include \
 -I$(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
 -I$(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
--I$(BOARD_BASE)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 -I$(BOARD_BASE)/Drivers/CMSIS/Include \
 -I$(CONTROL_BASE)/algo/inc \
 -I$(CONTROL_BASE)/devices/inc \
 -I$(CONTROL_BASE)/bsp/inc \
 -I$(ROBOT_PROJECT)/inc
+
+# typec HAL includes
+ifeq ($(BOARD),typec)
+C_INCLUDES += \
+	-I$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Inc \
+	-I$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+	-I$(BOARD_BASE)/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+endif
+
+# mc02 HAL includes
+ifeq ($(BOARD),mc02)
+C_INCLUDES += \
+	-I$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Inc \
+	-I$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy \
+	-I$(BOARD_BASE)/Drivers/CMSIS/Device/ST/STM32H7xx/Include
+
+# include USB
+C_INCLUDES += \
+	-I$(BOARD_BASE)/USB_DEVICE/App \
+	-I$(BOARD_BASE)/USB_DEVICE/Target \
+	-I$(BOARD_BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
+	-I$(BOARD_BASE)/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
+endif
 
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fmessage-length=0 -Werror
 ifeq ($(DEBUG), 1)
@@ -106,30 +143,6 @@ $(BOARD_BASE)/Core/Src/i2c.c \
 $(BOARD_BASE)/Core/Src/spi.c \
 $(BOARD_BASE)/Core/Src/tim.c \
 $(BOARD_BASE)/Core/Src/usart.c \
-$(BOARD_BASE)/Core/Src/stm32f4xx_it.c \
-$(BOARD_BASE)/Core/Src/stm32f4xx_hal_msp.c \
-$(BOARD_BASE)/Core/Src/stm32f4xx_hal_timebase_tim.c \
-$(BOARD_BASE)/Core/Src/system_stm32f4xx.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c_ex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
-$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/list.c \
@@ -145,8 +158,68 @@ $(wildcard $(CONTROL_BASE)/bsp/src/*.c) \
 $(wildcard $(CONTROL_BASE)/devices/src/*.c) \
 $(wildcard $(ROBOT_PROJECT)/src/*.c)
 
-# ASM sources
+# typec HAL sources
+ifeq ($(BOARD),typec)
+C_SOURCES += \
+	$(BOARD_BASE)/Core/Src/stm32f4xx_it.c \
+	$(BOARD_BASE)/Core/Src/stm32f4xx_hal_msp.c \
+	$(BOARD_BASE)/Core/Src/stm32f4xx_hal_timebase_tim.c \
+	$(BOARD_BASE)/Core/Src/system_stm32f4xx.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c_ex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
+	$(BOARD_BASE)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
+
 ASM_SOURCES = $(BOARD_BASE)/startup_stm32f407xx.s
+endif
+
+# mc02 HAL sources
+ifeq ($(BOARD),mc02)
+C_SOURCES += \
+	$(BOARD_BASE)/Core/Src/stm32h7xx_it.c \
+	$(BOARD_BASE)/Core/Src/stm32h7xx_hal_msp.c \
+	$(BOARD_BASE)/Core/Src/stm32h7xx_hal_timebase_tim.c \
+	$(BOARD_BASE)/Core/Src/system_stm32h7xx.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_can.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash_ramfunc.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c
+
+ASM_SOURCES = $(BOARD_BASE)/startup_stm32h723xx.s
+endif
+
 
 # ======== BUILD RULES ========
 # List of object files
