@@ -10,7 +10,7 @@ TARGET = $(ROBOT_PROJECT)
 # Board configuration
 BOARD = typec
 CONTROL_BASE = control-base
-BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board-base
+BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board
 
 # Build configuration
 DEBUG = 1
