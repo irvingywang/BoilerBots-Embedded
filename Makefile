@@ -8,7 +8,7 @@ ROBOT_PROJECT ?= Swerve-Standard
 TARGET = $(ROBOT_PROJECT)
 
 # Board configuration
-BOARD = typec
+BOARD = mc02
 CONTROL_BASE = control-base
 BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board
 
@@ -195,6 +195,7 @@ ifeq ($(BOARD), mc02)
 # CANFD on mc02
 C_SOURCES += \
 	$(BOARD_BASE)/Core/Src/fdcan.c \
+	$(BOARD_BASE)/Core/Src/adc.c \
 	$(BOARD_BASE)/Core/Src/octospi.c \
 
 C_SOURCES += \
@@ -215,17 +216,27 @@ C_SOURCES += \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_ospi.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart_ex.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd_ex.c \
 	$(BOARD_BASE)/USB_DEVICE/App/usb_device.c \
 	$(BOARD_BASE)/USB_DEVICE/App/usbd_desc.c \
 	$(BOARD_BASE)/USB_DEVICE/App/usbd_cdc_if.c \
 	$(BOARD_BASE)/USB_DEVICE/Target/usbd_conf.c \
-	Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c \
+	$(BOARD_BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
+	$(BOARD_BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
+	$(BOARD_BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
+	$(BOARD_BASE)/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c \
 
 ASM_SOURCES = $(BOARD_BASE)/startup_stm32h723xx.s
 endif
