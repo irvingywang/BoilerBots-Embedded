@@ -5,13 +5,11 @@ static CAN_Instance_t *g_can1_can_instances[CAN_MAX_DEVICE] = {NULL};
 static uint8_t g_can1_device_count = 0;
 static CAN_Instance_t *g_can2_can_instances[CAN_MAX_DEVICE] = {NULL};
 static uint8_t g_can2_device_count = 0;
-
-CAN_RxHeaderTypeDef g_rx_header;
-uint8_t g_can_data[8];
-
-void CAN_Init(CAN_HandleTypeDef *hcanx);
-void CAN_SendTOQueue(uint8_t can_bus, uint32_t id, uint8_t data[8]);
-
+#ifdef FDCAN_IN_USE // Defined in Makefile_dm_mc02
+static CAN_Instance_t *g_can3_can_instances[CAN_MAX_DEVICE] = {NULL};
+static uint8_t g_can3_device_count = 0;
+#endif
+#ifdef CAN_IN_USE
 /**
  * Initialize the CAN filter for a CAN instance @ref typedef CAN_Instance_t
  * 
@@ -80,6 +78,26 @@ CAN_Instance_t *CAN_Device_Register(uint8_t _can_bus, uint16_t _tx_id, uint16_t 
     return can_instance;
 }
 
+
+CAN_Instance_t *CAN_Device_Register_Tx_Only(uint8_t _can_bus, uint16_t _tx_id)
+{
+    CAN_Instance_t *can_instance = malloc(sizeof(CAN_Instance_t));
+    
+    // define can bus, can id, callback function
+    can_instance->can_bus = _can_bus;
+    can_instance->rx_id = 0x00;
+    can_instance->can_module_callback = NULL;
+    
+    // allocate memory for tx_header and rx_header
+    can_instance->tx_header = malloc(sizeof(CAN_TxHeaderTypeDef));
+    can_instance->tx_header->StdId = _tx_id;
+    can_instance->tx_header->IDE = CAN_ID_STD;
+    can_instance->tx_header->RTR = CAN_RTR_DATA;
+    can_instance->tx_header->DLC = 0x08;
+
+    return can_instance;
+}
+
 /**
  * @brief  CAN Service Initialization
 */
@@ -107,6 +125,11 @@ HAL_StatusTypeDef CAN_Transmit(CAN_Instance_t *can_instance)
     while (HAL_CAN_GetTxMailboxesFreeLevel(hcanx) == 0);
     // Transmit the message
     return HAL_CAN_AddTxMessage(hcanx, can_instance->tx_header, can_instance->tx_buffer, (uint32_t *)CAN_TX_MAILBOX0);
+}
+
+uint32_t CAN_Get_Tx_ID(CAN_Instance_t *can_instance)
+{
+    return can_instance->tx_header->StdId;
 }
 
 /**
@@ -182,3 +205,170 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
     CAN_Rx_Callback(hcan, CAN_RX_FIFO1);
 }
+#endif
+
+#ifdef FDCAN_IN_USE
+/**
+ * @brief  CAN Service Initialization
+*/
+void CAN_Service_Init()
+{
+    /* Start CAN Communication */
+    HAL_FDCAN_Start(&hfdcan1);
+    HAL_FDCAN_Start(&hfdcan2);
+
+    /* Activate Interrupt */
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan3, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+}
+
+void CAN_Filter_Init(CAN_Instance_t *can_instance)
+{
+    FDCAN_FilterTypeDef fdcan_filter;
+	
+	fdcan_filter.IdType = FDCAN_STANDARD_ID;                       //标准ID
+	fdcan_filter.FilterIndex = 0;                                  //滤波器索引                   
+	fdcan_filter.FilterType = FDCAN_FILTER_RANGE;                  //滤波器类型
+	fdcan_filter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;           //过滤器0关联到FIFO0  
+	fdcan_filter.FilterID1 = 0x0000;                               //32位ID
+	fdcan_filter.FilterID2 = 0x0000;                               //如果FDCAN配置为传统模式的话，这里是32位掩码
+    switch (can_instance->can_bus)
+    {
+        case 1:
+            HAL_FDCAN_ConfigFilter(&hfdcan1, &fdcan_filter);
+            HAL_FDCAN_ConfigFifoWatermark(&hfdcan1, FDCAN_CFG_RX_FIFO0, 1);
+            break;
+        case 2:
+            HAL_FDCAN_ConfigFilter(&hfdcan2, &fdcan_filter);
+            HAL_FDCAN_ConfigFifoWatermark(&hfdcan2, FDCAN_CFG_RX_FIFO0, 1);
+            break;
+        case 3:
+            HAL_FDCAN_ConfigFilter(&hfdcan3, &fdcan_filter);
+            HAL_FDCAN_ConfigFifoWatermark(&hfdcan3, FDCAN_CFG_RX_FIFO0, 1);
+            break;
+        default:
+            break;
+        
+    }
+}
+
+CAN_Instance_t *CAN_Device_Register(uint8_t _can_bus, uint16_t _tx_id, uint16_t _rx_id, void (*can_module_callback)(CAN_Instance_t *can_instance))
+{
+    CAN_Instance_t *can_instance = malloc(sizeof(CAN_Instance_t));
+    
+    // define can bus, can id, callback function
+    can_instance->can_bus = _can_bus;
+    can_instance->rx_id = _rx_id;
+    can_instance->can_module_callback = can_module_callback;
+    
+    // allocate memory for tx_header and rx_header
+    can_instance->tx_header = malloc(sizeof(FDCAN_TxHeaderTypeDef));
+    FDCAN_TxHeaderTypeDef* tx_header = can_instance->tx_header;
+    tx_header->Identifier = _tx_id;
+    tx_header->IdType = FDCAN_STANDARD_ID;                       // Standard ID
+    tx_header->TxFrameType = FDCAN_DATA_FRAME;                   // Data frame
+    tx_header->DataLength = 0x08 << 16;                          // Data length
+    tx_header->ErrorStateIndicator = FDCAN_ESI_ACTIVE;           // Set error state indicator
+    tx_header->BitRateSwitch = FDCAN_BRS_OFF;                    // Disable bit rate switch
+    tx_header->FDFormat = FDCAN_CLASSIC_CAN;                     // Classic CAN format
+    tx_header->TxEventFifoControl = FDCAN_NO_TX_EVENTS;          // No TX event FIFO control
+    tx_header->MessageMarker = 0x00;                             // Message marker for TX event FIFO, range 0 to 0xFF
+
+
+    // assign pointer to the can_instance to the global array
+    switch (_can_bus)
+    {
+    case 1:
+        g_can1_can_instances[g_can1_device_count++] = can_instance;
+        break;
+    case 2:
+        g_can2_can_instances[g_can2_device_count++] = can_instance;
+        break;
+    case 3:
+        g_can3_can_instances[g_can3_device_count++] = can_instance;
+        break;
+    default:
+        // TODO: LOG can bus need to be 1 or 2
+        break;
+    }
+    
+    CAN_Filter_Init(can_instance);
+    return can_instance;
+}
+
+CAN_Instance_t *CAN_Device_Register_Tx_Only(uint8_t _can_bus, uint16_t _tx_id)
+{
+    CAN_Instance_t *can_instance = malloc(sizeof(CAN_Instance_t));
+    
+    // define can bus, can id, callback function
+    can_instance->can_bus = _can_bus;
+    can_instance->rx_id = 0x00;
+    can_instance->can_module_callback = NULL;
+    
+    // allocate memory for tx_header and rx_header
+    can_instance->tx_header = malloc(sizeof(FDCAN_TxHeaderTypeDef));
+    FDCAN_TxHeaderTypeDef* tx_header = can_instance->tx_header;
+    tx_header->Identifier = _tx_id;
+    tx_header->IdType = FDCAN_STANDARD_ID;                       // Standard ID
+    tx_header->TxFrameType = FDCAN_DATA_FRAME;                   // Data frame
+    tx_header->DataLength = 0x08 << 16;                          // Data length
+    tx_header->ErrorStateIndicator = FDCAN_ESI_ACTIVE;           // Set error state indicator
+    tx_header->BitRateSwitch = FDCAN_BRS_OFF;                    // Disable bit rate switch
+    tx_header->FDFormat = FDCAN_CLASSIC_CAN;                     // Classic CAN format
+    tx_header->TxEventFifoControl = FDCAN_NO_TX_EVENTS;          // No TX event FIFO control
+    tx_header->MessageMarker = 0x00;                             // Message marker for TX event FIFO, range 0 to 0xFF
+
+
+    // assign pointer to the can_instance to the global array
+    switch (_can_bus)
+    {
+    case 1:
+        g_can1_can_instances[g_can1_device_count++] = can_instance;
+        break;
+    case 2:
+        g_can2_can_instances[g_can2_device_count++] = can_instance;
+        break;
+    case 3:
+        g_can3_can_instances[g_can3_device_count++] = can_instance;
+        break;
+    default:
+        // TODO: LOG can bus need to be 1 or 2
+        break;
+    }
+    
+    CAN_Filter_Init(can_instance);
+    return can_instance;
+}
+
+uint32_t CAN_Get_Tx_ID(CAN_Instance_t *can_instance)
+{
+    return can_instance->tx_header->Identifier;
+}
+
+/**
+ * @brief  Transmit a CAN message
+*/
+HAL_StatusTypeDef CAN_Transmit(CAN_Instance_t *can_instance)
+{
+    // Select the correct CAN bus
+    FDCAN_HandleTypeDef *hfdcan;
+    switch(can_instance->can_bus)
+    {
+        case 1:
+            hfdcan = &hfdcan1;
+            break;
+        case 2:
+            hfdcan = &hfdcan2;
+            break;
+        case 3:
+            hfdcan = &hfdcan3;
+            break;
+        default:
+            return HAL_ERROR;
+    }
+
+    // Transmit the message
+    return HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, can_instance->tx_header, can_instance->tx_buffer);
+}
+#endif

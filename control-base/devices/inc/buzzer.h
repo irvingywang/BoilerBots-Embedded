@@ -43,7 +43,7 @@
 #define WHOLE_NOTE_DURATION (2000)
 
 #define SYSTEM_INITIALIZING {{Note_C4, EIGHTH_NOTE_DURATION }, \
-                             {Note_E4, EIGHTH_NOTE_DURATION }, \
+                             {Note_00, EIGHTH_NOTE_DURATION }, \
                              {Note_G4, EIGHTH_NOTE_DURATION }, \
                              {Note_C5, EIGHTH_NOTE_DURATION }, \
                              {Note_E5, EIGHTH_NOTE_DURATION }, \
@@ -135,7 +135,7 @@ typedef struct
     float loudness;
 } Buzzzer_Instance_t;
 
-void Buzzer_Init(void);
+void Buzzer_Init(TIM_HandleTypeDef *htim, uint32_t channel);
 void Buzzer_Set_State(Buzzzer_Instance_t *buzzer, Buzzer_State_t state);
 void Buzzer_Set_Loudness(Buzzzer_Instance_t *buzzer, float loudness);
 void Buzzer_Set_Note(Buzzzer_Instance_t *buzzer);
