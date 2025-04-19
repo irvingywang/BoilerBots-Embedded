@@ -289,8 +289,8 @@ clean_powershell:
 
 # ======== FLASH COMMANDS ========
 # OpenOCD commands
-OPENOCD_CMSIS_CMD = -f config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown
-OPENOCD_STLINK_CMD = -f config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown
+OPENOCD_CMSIS_CMD = -f $(BOARD_BASE)/config/openocd_cmsis_dap.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown
+OPENOCD_STLINK_CMD = -f $(BOARD_BASE)/config/openocd_stlink.cfg -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset" -c "reset run" -c shutdown
 
 # Flash for Unix systems
 flash:

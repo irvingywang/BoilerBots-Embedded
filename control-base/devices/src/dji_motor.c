@@ -37,7 +37,7 @@ uint8_t DJI_Motor_Assign_To_Group(DJI_Motor_Handle_t *motor_handle, uint16_t tx_
     for (int i = 0; i < g_dji_motor_group_count; i++)
     {
         // if the group is already created, add the motor to the group
-        if ((g_dji_send_group[i]->can_instance->can_bus == can_bus) && (g_dji_send_group[i]->can_instance->tx_header->StdId == tx_id))
+        if ((g_dji_send_group[i]->can_instance->can_bus == can_bus) && (CAN_Get_Tx_ID(g_dji_send_group[i]->can_instance)))
         {
             // change register indicator to include the new motor. This will be used in @ref DJI_Motor_Send()
             g_dji_send_group[i]->register_device_indicator |= (1 << real_id);
@@ -49,15 +49,8 @@ uint8_t DJI_Motor_Assign_To_Group(DJI_Motor_Handle_t *motor_handle, uint16_t tx_
     }
     // if reach here, create a new group
     DJI_Send_Group_t *new_group = (DJI_Send_Group_t *)malloc(sizeof(DJI_Send_Group_t));
-    new_group->can_instance = calloc(sizeof(CAN_Instance_t), 1);
-    new_group->can_instance->can_bus = can_bus;
-    // allocate memory for tx_header
-    new_group->can_instance->tx_header = malloc(sizeof(CAN_TxHeaderTypeDef));
-    new_group->can_instance->tx_header->StdId = tx_id;      // set id (the actual id that will be send)
-    new_group->can_instance->tx_header->IDE = CAN_ID_STD;   // standard id (check CAN documentation for more information)
-    new_group->can_instance->tx_header->RTR = CAN_RTR_DATA; // data frame (check CAN documentation for more information)
-    new_group->can_instance->tx_header->DLC = 8;            // 8 bytes of data (check CAN documentation for more information)
-    // change register indicator to include the new motor. This will be used in @ref DJI_Motor_Send()
+    new_group->can_instance = CAN_Device_Register_Tx_Only(can_bus, tx_id);
+
     new_group->register_device_indicator = (1 << real_id);
     // output current pointer of the motor
     // send group will check the value pointed by the pointer and send it at a predefined frequency
