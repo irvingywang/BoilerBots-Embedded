@@ -8,7 +8,7 @@ ROBOT_PROJECT ?= Swerve-Standard
 TARGET = $(ROBOT_PROJECT)
 
 # Board configuration
-BOARD = mc02
+BOARD = typec
 CONTROL_BASE = control-base
 BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board
 
@@ -58,7 +58,6 @@ ifeq ($(BOARD), typec)
 endif
 
 ifeq ($(BOARD), mc02)
-	CPU = -mcpu=cortex-m7
 	CPU = -mcpu=cortex-m7
 	FPU = -mfpu=fpv5-d16
 	FLOAT-ABI = -mfloat-abi=hard
@@ -137,9 +136,7 @@ C_SOURCES = \
 $(BOARD_BASE)/Core/Src/main.c \
 $(BOARD_BASE)/Core/Src/gpio.c \
 $(BOARD_BASE)/Core/Src/freertos.c \
-$(BOARD_BASE)/Core/Src/can.c \
 $(BOARD_BASE)/Core/Src/dma.c \
-$(BOARD_BASE)/Core/Src/i2c.c \
 $(BOARD_BASE)/Core/Src/spi.c \
 $(BOARD_BASE)/Core/Src/tim.c \
 $(BOARD_BASE)/Core/Src/usart.c \
@@ -159,7 +156,11 @@ $(wildcard $(CONTROL_BASE)/devices/src/*.c) \
 $(wildcard $(ROBOT_PROJECT)/src/*.c)
 
 # typec HAL sources
-ifeq ($(BOARD),typec)
+ifeq ($(BOARD), typec)
+C_SOURCES += \
+	$(BOARD_BASE)/Core/Src/can.c \
+	$(BOARD_BASE)/Core/Src/i2c.c
+
 C_SOURCES += \
 	$(BOARD_BASE)/Core/Src/stm32f4xx_it.c \
 	$(BOARD_BASE)/Core/Src/stm32f4xx_hal_msp.c \
@@ -190,7 +191,12 @@ ASM_SOURCES = $(BOARD_BASE)/startup_stm32f407xx.s
 endif
 
 # mc02 HAL sources
-ifeq ($(BOARD),mc02)
+ifeq ($(BOARD), mc02)
+# CANFD on mc02
+C_SOURCES += \
+	$(BOARD_BASE)/Core/Src/canfd.c \
+	$(BOARD_BASE)/Core/Src/octospi.c \
+
 C_SOURCES += \
 	$(BOARD_BASE)/Core/Src/stm32h7xx_it.c \
 	$(BOARD_BASE)/Core/Src/stm32h7xx_hal_msp.c \
@@ -215,7 +221,12 @@ C_SOURCES += \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
-	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c \
+	$(BOARD_BASE)/USB_DEVICE/App/usb_device.c \
+	$(BOARD_BASE)/USB_DEVICE/App/usbd_desc.c \
+	$(BOARD_BASE)/USB_DEVICE/App/usbd_cdc_if.c \
+	$(BOARD_BASE)/USB_DEVICE/Target/usbd_conf.c \
+	Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c \
 
 ASM_SOURCES = $(BOARD_BASE)/startup_stm32h723xx.s
 endif
