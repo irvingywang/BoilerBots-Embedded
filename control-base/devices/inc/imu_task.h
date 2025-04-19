@@ -12,7 +12,6 @@
 #include "cmsis_os.h"
 #include "bsp_pwm.h"
 #include "bmi088driver.h"
-#include "ist8310driver.h"
 #include "pid.h"
 #include "MahonyAHRS.h"
 #include "math.h"
@@ -36,8 +35,6 @@ typedef struct Quaternion_Orientation
 typedef struct IMU
 {
   BMI088_Raw_t bmi088_raw;
-
-  IST8310_Raw_t ist8310_raw;
 
   float quat[4];
 

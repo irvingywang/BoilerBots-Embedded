@@ -7,11 +7,17 @@
 
 #include "imu_task.h"
 
-
+#ifdef STM32H723xx // TODO: change this implementation for different board
+#define IMU_HEATER_TIMER_NUM (htim3)
+#define IMU_HEATER_TIMER_CHANNEL (TIM_CHANNEL_4)
+#else
+#define IMU_HEATER_TIMER_NUM (htim10)
+#define IMU_HEATER_TIMER_CHANNEL (TIM_CHANNEL_1)
+#endif
 
 void IMU_Task_Init(IMU_t *imu);
 void IMU_Task_Process(IMU_t *imu);
-void IMU_Task_Temp();
+void _IMU_Task_Temp();
 
 IMU_t g_imu;
 PID_t g_imu_temp_pid;
@@ -32,7 +38,8 @@ void IMU_Task(void const *pvParameters)
 void IMU_Task_Init(IMU_t *imu)
 {
     PID_Init(&g_imu_temp_pid, 1600.0f, 0.2f, 0, 4500, 4400, 0);
-    HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
+    // Start PWM for IMU heater
+    HAL_TIM_PWM_Start(&IMU_HEATER_TIMER_NUM, IMU_HEATER_TIMER_CHANNEL);
 
     int error = BMI088_init();
     while (error)
@@ -55,10 +62,10 @@ void IMU_Task_Process(IMU_t *imu)
 
     #ifdef WITH_MAGNETOMETER
     // fusion using magnetometer
-     MahonyAHRSupdate(imu->quat,
-                      imu->bmi088_raw.gyro[0], imu->bmi088_raw.gyro[1], imu->bmi088_raw.gyro[2],
-                      imu->bmi088_raw.accel[0], imu->bmi088_raw.accel[1], imu->bmi088_raw.accel[2],
-                      imu->ist8310_raw.mag[0], imu->ist8310_raw.mag[1], imu->ist8310_raw.mag[2]);
+    MahonyAHRSupdate(imu->quat,
+                    imu->bmi088_raw.gyro[0], imu->bmi088_raw.gyro[1], imu->bmi088_raw.gyro[2],
+                    imu->bmi088_raw.accel[0], imu->bmi088_raw.accel[1], imu->bmi088_raw.accel[2],
+                    imu->ist8310_raw.mag[0], imu->ist8310_raw.mag[1], imu->ist8310_raw.mag[2]);
     #else
     // fusion without magnetometer
     MahonyAHRSupdateIMU(imu->quat,
@@ -74,10 +81,10 @@ void IMU_Task_Process(IMU_t *imu)
     imu->deg.pitch = imu->rad.pitch * RAD_TO_DEG;
     imu->deg.roll = imu->rad.roll * RAD_TO_DEG;
 
-    IMU_Task_Temp();
+    _IMU_Task_Temp();
 }
 
-void IMU_Task_Temp() {
+void _IMU_Task_Temp() {
     static uint8_t start_complete = 0;
     if (g_imu.bmi088_raw.temp > 40.0f) {start_complete = 1;}
     switch (start_complete)
@@ -85,11 +92,11 @@ void IMU_Task_Temp() {
     case 1:
     {
         uint16_t temp_pwm = (uint16_t) PID(&g_imu_temp_pid, 40 - g_imu.bmi088_raw.temp);
-        __HAL_TIM_SetCompare(&htim10, TIM_CHANNEL_1, temp_pwm);
+        __HAL_TIM_SetCompare(&IMU_HEATER_TIMER_NUM, IMU_HEATER_TIMER_CHANNEL, temp_pwm);
         break;
     }
     case 0:
-        __HAL_TIM_SetCompare(&htim10, TIM_CHANNEL_1, 4999);
+        __HAL_TIM_SetCompare(&IMU_HEATER_TIMER_NUM, IMU_HEATER_TIMER_CHANNEL, 4999);
         break;
 
     default:

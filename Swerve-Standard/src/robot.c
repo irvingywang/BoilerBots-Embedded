@@ -23,6 +23,16 @@ Input_State_t g_input_state = {0};
 
 #define KEYBOARD_RAMP_COEF (0.01f)
 
+#ifdef STM32H723xx
+#define BUZZER_TIMER_NUM (htim12)
+#define BUZZER_TIMER_CHANNEL (TIM_CHANNEL_2)
+#define REMOTE_UART (huart5)
+#else
+#define BUZZER_TIMER_NUM (htim4)
+#define BUZZER_TIMER_CHANNEL (TIM_CHANNEL_3)
+#define REMOTE_UART (huart3)
+#endif
+
 /**
  * @brief This function initializes the robot.
  * This means setting the state to STARTING_UP,
@@ -33,7 +43,7 @@ void Robot_Init()
 {
     g_robot_state.state = STARTING_UP;
 
-    Buzzer_Init(&htim4, TIM_CHANNEL_3);
+    Buzzer_Init(&BUZZER_TIMER_NUM, BUZZER_TIMER_CHANNEL);
     Melody_t system_init_melody = {
         .notes = SYSTEM_INITIALIZING,
         .loudness = 0.5f,
@@ -57,7 +67,7 @@ void Handle_Starting_Up_State()
     Chassis_Task_Init();
     Gimbal_Task_Init();
     Launch_Task_Init();
-    Jetson_Orin_Init(&huart6);
+    Jetson_Orin_Init(&huart2); // ! temp uart1
 
     Remote_Init(&huart3);
 

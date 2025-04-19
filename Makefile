@@ -194,7 +194,7 @@ endif
 ifeq ($(BOARD), mc02)
 # CANFD on mc02
 C_SOURCES += \
-	$(BOARD_BASE)/Core/Src/canfd.c \
+	$(BOARD_BASE)/Core/Src/fdcan.c \
 	$(BOARD_BASE)/Core/Src/octospi.c \
 
 C_SOURCES += \
@@ -202,12 +202,11 @@ C_SOURCES += \
 	$(BOARD_BASE)/Core/Src/stm32h7xx_hal_msp.c \
 	$(BOARD_BASE)/Core/Src/stm32h7xx_hal_timebase_tim.c \
 	$(BOARD_BASE)/Core/Src/system_stm32h7xx.c \
-	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_can.c \
+	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_fdcan.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash_ex.c \
-	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash_ramfunc.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma_ex.c \
 	$(BOARD_BASE)/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma.c \
