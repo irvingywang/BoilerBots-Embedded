@@ -189,7 +189,7 @@ $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 	@echo "${COLOR_CYAN}Generated binary: $@${COLOR_RESET}"
 
 $(BUILD_DIR):
-	@mkdir -p $@
+	@if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
 
 # Clean build files
 clean:
