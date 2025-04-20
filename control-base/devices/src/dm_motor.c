@@ -180,6 +180,10 @@ void DM_Motor_CtrlVel()
 
 void DM_Motor_Send()
 {
+    if (g_dm_motor_num == 0) {
+        return; // no motors to send
+    }
+    
     for (int i = 0; i < g_dm_motor_num; i++) // loop through all the motors
     {
         if (g_dm_motors[i]->send_pending_flag)

@@ -367,6 +367,10 @@ void DJI_Motor_Current_Calc()
  */
 void DJI_Motor_Send()
 {
+    if (g_dji_motor_count == 0) {
+        return; // no motors to send
+    }
+
     // Calculate motor current based on control mode for all motors
     DJI_Motor_Current_Calc();
     // Send motor torques (iterate through send groups)

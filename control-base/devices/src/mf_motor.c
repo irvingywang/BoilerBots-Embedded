@@ -231,6 +231,10 @@ void MF_Motor_PositionCtrl(MF_Motor_Handle_t *motor, int32_t pos)
 
 void MF_Motor_Send(void)
 {
+    if (g_mf_motor_num == 0) {
+        return; // no motors to send
+    }
+
     for (int i = 0; i < g_mf_motor_num; i++) // loop through all the motors
     {
         if (g_mf_motors[i]->send_pending_flag)
