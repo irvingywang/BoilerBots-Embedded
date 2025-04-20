@@ -69,7 +69,7 @@ void Handle_Starting_Up_State()
 
     //Referee_System_Init(&huart1); // ! change the uart peripheral, or else instacrash
     Jetson_Orin_Init(&huart2); // TODO assign a different UART
-    Remote_Init(&huart3);  // TODO assign a different UART
+    Remote_Init(&huart5);  // TODO assign a different UART
 
     Supercap_Init(&g_supercap);
 

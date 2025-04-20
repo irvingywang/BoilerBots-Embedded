@@ -22,6 +22,7 @@ osThreadId ui_task_handle;
 osThreadId debug_task_handle;
 osThreadId jetson_orin_task_handle;
 osThreadId daemon_task_handle;
+osThreadId heartbeat_task_handle;
 
 void Robot_Tasks_Robot_Command(void const *argument);
 void Robot_Tasks_Motor(void const *argument);
@@ -30,6 +31,7 @@ void Robot_Tasks_UI(void const *argument);
 void Robot_Tasks_Debug(void const *argument);
 void Robot_Tasks_Jetson_Orin(void const *argument);
 void Robot_Tasks_Daemon(void const *argument);
+void Robot_Tasks_Heartbeat_LED(void const *argument);
 
 void Robot_Tasks_Start()
 {
@@ -53,6 +55,21 @@ void Robot_Tasks_Start()
 
     osThreadDef(daemon_task, Robot_Tasks_Daemon, osPriorityAboveNormal, 0, 256);
     daemon_task_handle = osThreadCreate(osThread(daemon_task), NULL);
+
+    osThreadDef(heartbeat_task, Robot_Tasks_Heartbeat_LED, osPriorityIdle, 0, 256);
+    heartbeat_task_handle = osThreadCreate(osThread(heartbeat_task), NULL);
+}
+
+void Robot_Tasks_Heartbeat_LED(void const *argument)
+{
+    portTickType xLastWakeTime;
+    xLastWakeTime = xTaskGetTickCount();
+    const TickType_t TimeIncrement = pdMS_TO_TICKS(1000);
+    while (1)
+    {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_7);
+        vTaskDelayUntil(&xLastWakeTime, TimeIncrement);
+    }
 }
 
 void Robot_Tasks_Robot_Command(void const *argument)
