@@ -62,14 +62,16 @@ void Handle_Starting_Up_State()
 {
     // Initialize all hardware
     CAN_Service_Init();
-    Referee_System_Init(&huart1);
-    Supercap_Init(&g_supercap);
+    
     Chassis_Task_Init();
     Gimbal_Task_Init();
     Launch_Task_Init();
-    Jetson_Orin_Init(&huart2); // ! temp uart1
 
-    Remote_Init(&huart3);
+    //Referee_System_Init(&huart1); // ! change the uart peripheral, or else instacrash
+    Jetson_Orin_Init(&huart2); // TODO assign a different UART
+    Remote_Init(&huart3);  // TODO assign a different UART
+
+    Supercap_Init(&g_supercap);
 
     g_robot_state.state = DISABLED;
 }
