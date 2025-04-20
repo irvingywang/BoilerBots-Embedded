@@ -7,8 +7,17 @@
 ROBOT_PROJECT ?= Swerve-Standard
 TARGET = $(ROBOT_PROJECT)
 
+ifeq ($(ROBOT_PROJECT), Swerve-Standard)
+	BOARD = mc02
+else ifeq ($(ROBOT_PROJECT), Sentry)
+	BOARD = typec
+else ifeq ($(ROBOT_PROJECT), Hero)
+	BOARD = typec
+else 
+	$(error "Invalid robot project: $(ROBOT_PROJECT). Please set the ROBOT_PROJECT variable to a valid project.")
+endif
+
 # Board configuration
-BOARD = mc02
 CONTROL_BASE = control-base
 BOARD_BASE = $(CONTROL_BASE)/${BOARD}-board
 

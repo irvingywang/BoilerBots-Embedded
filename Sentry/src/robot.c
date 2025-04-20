@@ -16,6 +16,16 @@ Robot_State_t g_robot_state = {0};
 extern Remote_t g_remote;
 extern Supercap_t g_supercap;
 
+#ifdef STM32H723xx
+#define BUZZER_TIMER_NUM (htim12)
+#define BUZZER_TIMER_CHANNEL (TIM_CHANNEL_2)
+#define REMOTE_UART (huart5)
+#else
+#define BUZZER_TIMER_NUM (htim4)
+#define BUZZER_TIMER_CHANNEL (TIM_CHANNEL_3)
+#define REMOTE_UART (huart3)
+#endif
+
 /**
  * @brief This function initializes the robot.
  * This means setting the state to STARTING_UP,
@@ -26,7 +36,7 @@ void Robot_Init()
 {
     g_robot_state.state = STARTING_UP;
 
-    Buzzer_Init();
+    Buzzer_Init(&BUZZER_TIMER_NUM, BUZZER_TIMER_CHANNEL);
     Melody_t system_init_melody = {
         .notes = SYSTEM_INITIALIZING,
         .loudness = 0.5f,
