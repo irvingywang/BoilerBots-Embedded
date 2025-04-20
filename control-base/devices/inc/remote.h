@@ -88,6 +88,6 @@ typedef struct
 
 
 extern Remote_t g_remote;
-Remote_t* Remote_Init(UART_HandleTypeDef *huart);
+Remote_t* Remote_Init();
 
 #endif /* __REMOTE_H */

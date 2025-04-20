@@ -5,11 +5,19 @@ Buzzzer_Instance_t g_buzzer;
 PWM_Instance_t *g_buzzer_uart_ptr;
 uint8_t g_buzzer_count = 0;
 
-void Buzzer_Init(TIM_HandleTypeDef *htim, uint32_t channel)
+#ifdef STM32H723xx
+#define BUZZER_TIMER_NUM (htim12)
+#define BUZZER_TIMER_CHANNEL (TIM_CHANNEL_2)
+#else
+#define BUZZER_TIMER_NUM (htim4)
+#define BUZZER_TIMER_CHANNEL (TIM_CHANNEL_3)
+#endif
+
+void Buzzer_Init()
 {
     PWM_Config_t buzzer_config = {
-        .htim = htim,
-        .channel = channel,
+        .htim = &BUZZER_TIMER_NUM,
+        .channel = BUZZER_TIMER_CHANNEL,
         .dutyratio = 0,
         .period = 0.001,
     };

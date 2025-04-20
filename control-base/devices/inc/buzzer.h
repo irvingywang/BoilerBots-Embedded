@@ -135,7 +135,7 @@ typedef struct
     float loudness;
 } Buzzzer_Instance_t;
 
-void Buzzer_Init(TIM_HandleTypeDef *htim, uint32_t channel);
+void Buzzer_Init();
 void Buzzer_Set_State(Buzzzer_Instance_t *buzzer, Buzzer_State_t state);
 void Buzzer_Set_Loudness(Buzzzer_Instance_t *buzzer, float loudness);
 void Buzzer_Set_Note(Buzzzer_Instance_t *buzzer);

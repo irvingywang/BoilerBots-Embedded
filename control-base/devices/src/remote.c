@@ -15,6 +15,13 @@ Daemon_Instance_t *g_remote_daemon;
 
 uint8_t remote_buffer[18];
 volatile uint8_t debug_buffer[18];
+
+#ifdef STM32H723xx
+#define REMOTE_UART (huart5)
+#else
+#define REMOTE_UART (huart3)
+#endif
+
 /*
  * Remote_BufferProcess()
  * 
@@ -74,9 +81,9 @@ void Remote_Timeout_Callback()
 	g_remote.online_flag = 0;
 }
 
-Remote_t* Remote_Init(UART_HandleTypeDef *huart)
+Remote_t* Remote_Init()
 {
-	g_remote_uart = UART_Register(huart, remote_buffer, 18, Remote_Rx_Callback);
+	g_remote_uart = UART_Register(&REMOTE_UART, remote_buffer, 18, Remote_Rx_Callback);
 	g_remote_daemon = Daemon_Register(20, 20, Remote_Timeout_Callback);
 	return &g_remote;
 }
