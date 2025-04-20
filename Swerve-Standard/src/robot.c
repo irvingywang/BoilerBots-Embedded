@@ -57,7 +57,7 @@ void Handle_Starting_Up_State()
     Gimbal_Task_Init();
     Launch_Task_Init();
 
-    //Referee_System_Init(&huart1); // ! change the uart peripheral, or else instacrash
+    Referee_System_Init(&huart10); // ! change the uart peripheral, or else instacrash
     Jetson_Orin_Init(&huart2); // TODO assign a different UART
     Remote_Init();
 
