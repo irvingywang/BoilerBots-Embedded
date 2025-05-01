@@ -28,7 +28,7 @@ uint8_t g_uart_instance_count = 0;
 void UART_Service_Init(UART_Instance_t *uart_insatce)
 {
     // enable uart receive
-    HAL_UARTEx_ReceiveToIdle_DMA(uart_insatce->uart_handle, uart_insatce->rx_buffer, uart_insatce->rx_buffer_size * 2);
+    HAL_UART_Receive_DMA(uart_insatce->uart_handle, uart_insatce->rx_buffer, uart_insatce->rx_buffer_size);
     // disable half transfer interrupt
     // __HAL_DMA_DISABLE_IT(uart_insatce->uart_handle->hdmarx, DMA_IT_HT); // disable half transfer interrupt
 }
@@ -103,29 +103,34 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     for (int i = 0; i < g_uart_instance_count; i++)
     {
         // if the UART handle matches
-        if (g_uart_insatnces[i]->uart_handle == huart)
-        {
-            if (Size <= g_uart_insatnces[i]->rx_buffer_size)
-            {
-                // if the callback function is not NULL
-                if (g_uart_insatnces[i]->callback != NULL)
-                {
-                    // call the callback function
-                    g_uart_insatnces[i]->callback(g_uart_insatnces[i]);
 
-                    // enable uart receive for next data frame
-                    HAL_UARTEx_ReceiveToIdle_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size * 2);
-                    // still disable half transfer interrupt (@ref void UART_Service_Init(void))
-                    // __HAL_DMA_DISABLE_IT(huart3.hdmarx, DMA_IT_HT);
-                }
-            }
-            else
+        if (g_uart_insatnces[i]->uart_handle != huart) {
+            continue;
+        }
+
+        if (Size <= g_uart_insatnces[i]->rx_buffer_size)
+        {
+            // if the callback function is not NULL
+            if (g_uart_insatnces[i]->callback != NULL)
             {
-                // if the received data is larger than the buffer size
-                // clear the buffer and enable uart receive for next data frame
-                memset(g_uart_insatnces[i]->rx_buffer, 0, g_uart_insatnces[i]->rx_buffer_size);
-                HAL_UARTEx_ReceiveToIdle_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size * 2);
+                // call the callback function
+                g_uart_insatnces[i]->callback(g_uart_insatnces[i]);
+
+                // enable uart receive for next data frame
+                HAL_UART_Receive_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size);
+
+                // still disable half transfer interrupt (@ref void UART_Service_Init(void))
+                // __HAL_DMA_DISABLE_IT(huart3.hdmarx, DMA_IT_HT);
+                //HAL_UARTEx_ReceiveToIdle_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size * 2);
+
             }
+        }
+        else
+        {
+            // if the received data is larger than the buffer size
+            // clear the buffer and enable uart receive for next data frame
+            memset(g_uart_insatnces[i]->rx_buffer, 0, g_uart_insatnces[i]->rx_buffer_size);
+            HAL_UART_Receive_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size);
         }
     }
 }
@@ -139,7 +144,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
         if (g_uart_insatnces[i]->uart_handle == huart)
         {
             memset(g_uart_insatnces[i]->rx_buffer, 0, g_uart_insatnces[i]->rx_buffer_size);
-            HAL_UARTEx_ReceiveToIdle_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size * 2);
+            HAL_UART_Receive_DMA(huart, g_uart_insatnces[i]->rx_buffer, g_uart_insatnces[i]->rx_buffer_size);
         }
     }
 }

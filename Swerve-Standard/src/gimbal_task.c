@@ -16,60 +16,60 @@ DJI_Motor_Handle_t *g_yaw, *g_pitch;
 
 void Gimbal_Task_Init()
 {
-    Motor_Config_t yaw_motor_config = {
-        .can_bus = 1,
-        .speed_controller_id = 3,
-        .offset = 2400,
-        .control_mode = POSITION_VELOCITY_SERIES,
-        .motor_reversal = MOTOR_REVERSAL_NORMAL,
-        .use_external_feedback = 1,
-        .external_feedback_dir = 1,
-        .external_angle_feedback_ptr = &g_imu.rad.yaw,
-        .external_velocity_feedback_ptr = &(g_imu.bmi088_raw.gyro[2]),
-        .angle_pid =
-            {
-                .kp = 25.0f,
-                .kd = 100.0f,
-                .output_limit = 25,
-            },
-        .velocity_pid =
-            {
-                .kp = 5000.0f,
-                .ki = 0.0f,
-                .kf = 1000.0f,
-                .feedforward_limit = 5000.0f,
-                .integral_limit = 5000.0f,
-                .output_limit = GM6020_MAX_CURRENT,
-            },
-    };
+    // Motor_Config_t yaw_motor_config = {
+    //     .can_bus = 1,
+    //     .speed_controller_id = 3,
+    //     .offset = 2400,
+    //     .control_mode = POSITION_VELOCITY_SERIES,
+    //     .motor_reversal = MOTOR_REVERSAL_NORMAL,
+    //     .use_external_feedback = 1,
+    //     .external_feedback_dir = 1,
+    //     .external_angle_feedback_ptr = &g_imu.rad.yaw,
+    //     .external_velocity_feedback_ptr = &(g_imu.bmi088_raw.gyro[2]),
+    //     .angle_pid =
+    //         {
+    //             .kp = 25.0f,
+    //             .kd = 100.0f,
+    //             .output_limit = 25,
+    //         },
+    //     .velocity_pid =
+    //         {
+    //             .kp = 5000.0f,
+    //             .ki = 0.0f,
+    //             .kf = 1000.0f,
+    //             .feedforward_limit = 5000.0f,
+    //             .integral_limit = 5000.0f,
+    //             .output_limit = GM6020_MAX_CURRENT,
+    //         },
+    // };
 
-    Motor_Config_t pitch_motor_config = {
-        .can_bus = 1,
-        .speed_controller_id = 2,
-        .offset = 4460,
-        .use_external_feedback = 1,
-        .external_feedback_dir = -1,
-        .external_angle_feedback_ptr = &g_imu.rad.roll, // pitch
-        .external_velocity_feedback_ptr = &(g_imu.bmi088_raw.gyro[0]),
-        .control_mode = POSITION_VELOCITY_SERIES,
-        .motor_reversal = MOTOR_REVERSAL_NORMAL,
-        .angle_pid =
-            {
-                .kp = 40.0f,
-                .kd = 100.0f,
-                .output_limit = 50.0f,
-            },
-        .velocity_pid =
-            {
-                .kp = 4500.0f,
-                .ki = 0.8f,
-                .integral_limit = 4000.0f,
-                .output_limit = GM6020_MAX_CURRENT,
-            },
-    };
+    // Motor_Config_t pitch_motor_config = {
+    //     .can_bus = 1,
+    //     .speed_controller_id = 2,
+    //     .offset = 4460,
+    //     .use_external_feedback = 1,
+    //     .external_feedback_dir = -1,
+    //     .external_angle_feedback_ptr = &g_imu.rad.roll, // pitch
+    //     .external_velocity_feedback_ptr = &(g_imu.bmi088_raw.gyro[0]),
+    //     .control_mode = POSITION_VELOCITY_SERIES,
+    //     .motor_reversal = MOTOR_REVERSAL_NORMAL,
+    //     .angle_pid =
+    //         {
+    //             .kp = 40.0f,
+    //             .kd = 100.0f,
+    //             .output_limit = 50.0f,
+    //         },
+    //     .velocity_pid =
+    //         {
+    //             .kp = 4500.0f,
+    //             .ki = 0.8f,
+    //             .integral_limit = 4000.0f,
+    //             .output_limit = GM6020_MAX_CURRENT,
+    //         },
+    // };
 
-    g_yaw = DJI_Motor_Init(&yaw_motor_config, GM6020);
-    g_pitch = DJI_Motor_Init(&pitch_motor_config, GM6020);
+    // g_yaw = DJI_Motor_Init(&yaw_motor_config, GM6020);
+    // g_pitch = DJI_Motor_Init(&pitch_motor_config, GM6020);
 }
 
 void Gimbal_Ctrl_Loop()

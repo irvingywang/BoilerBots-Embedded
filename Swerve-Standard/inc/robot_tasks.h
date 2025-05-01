@@ -38,31 +38,31 @@ void Robot_Tasks_Buzzer(const void *argument);
 
 void Robot_Tasks_Start()
 {
-    osThreadDef(imu_task, Robot_Tasks_IMU, osPriorityAboveNormal, 0, 1024);
-    imu_task_handle = osThreadCreate(osThread(imu_task), NULL);
+    // osThreadDef(imu_task, Robot_Tasks_IMU, osPriorityAboveNormal, 0, 1024);
+    // imu_task_handle = osThreadCreate(osThread(imu_task), NULL);
 
-    osThreadDef(motor_task, Robot_Tasks_Motor, osPriorityAboveNormal, 0, 256);
-    motor_task_handle = osThreadCreate(osThread(motor_task), NULL);
+    // osThreadDef(motor_task, Robot_Tasks_Motor, osPriorityAboveNormal, 0, 256);
+    // motor_task_handle = osThreadCreate(osThread(motor_task), NULL);
 
-    osThreadDef(robot_command_task, Robot_Tasks_Robot_Command, osPriorityAboveNormal, 0, 256);
-    robot_command_task_handle = osThreadCreate(osThread(robot_command_task), NULL);
+    // osThreadDef(robot_command_task, Robot_Tasks_Robot_Command, osPriorityAboveNormal, 0, 256);
+    // robot_command_task_handle = osThreadCreate(osThread(robot_command_task), NULL);
 
-    osThreadDef(ui_task, Robot_Tasks_UI, osPriorityAboveNormal, 0, 256);
-    ui_task_handle = osThreadCreate(osThread(ui_task), NULL);
+    // osThreadDef(ui_task, Robot_Tasks_UI, osPriorityAboveNormal, 0, 256);
+    // ui_task_handle = osThreadCreate(osThread(ui_task), NULL);
 
-    osThreadDef(debug_task, Robot_Tasks_Debug, osPriorityIdle, 0, 256);
-    debug_task_handle = osThreadCreate(osThread(debug_task), NULL);
+    // osThreadDef(debug_task, Robot_Tasks_Debug, osPriorityIdle, 0, 256);
+    // debug_task_handle = osThreadCreate(osThread(debug_task), NULL);
 
-    osThreadDef(jetson_orin_task, Robot_Tasks_Jetson_Orin, osPriorityAboveNormal, 0, 256);
-    jetson_orin_task_handle = osThreadCreate(osThread(jetson_orin_task), NULL);
+    // osThreadDef(jetson_orin_task, Robot_Tasks_Jetson_Orin, osPriorityAboveNormal, 0, 256);
+    // jetson_orin_task_handle = osThreadCreate(osThread(jetson_orin_task), NULL);
 
     osThreadDef(daemon_task, Robot_Tasks_Daemon, osPriorityAboveNormal, 0, 256);
     daemon_task_handle = osThreadCreate(osThread(daemon_task), NULL);
 
-    osThreadDef(heartbeat_task, Robot_Tasks_Heartbeat_LED, osPriorityIdle, 0, 64);
-    heartbeat_task_handle = osThreadCreate(osThread(heartbeat_task), NULL);
+    // osThreadDef(heartbeat_task, Robot_Tasks_Heartbeat_LED, osPriorityIdle, 0, 256);
+    // heartbeat_task_handle = osThreadCreate(osThread(heartbeat_task), NULL);
 
-    osThreadDef(buzzer_task, Robot_Tasks_Buzzer, osPriorityIdle, 0, 64);
+    osThreadDef(buzzer_task, Robot_Tasks_Buzzer, osPriorityIdle, 0, 256);
     buzzer_task_handle = osThreadCreate(osThread(buzzer_task), NULL);
 }
 
@@ -87,6 +87,9 @@ void Robot_Tasks_Buzzer(void const *argument)
         .note_num = SYSTEM_INITIALIZING_NOTE_NUM,
     };
     Buzzer_Play_Melody(system_init_melody);
+    vTaskDelete(NULL);
+
+    // TODO utilize buzzer to indicate system status rather than just init
 }
 
 void Robot_Tasks_Robot_Command(void const *argument)

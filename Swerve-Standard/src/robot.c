@@ -40,6 +40,7 @@ void Robot_Init()
     //     .note_num = SYSTEM_INITIALIZING_NOTE_NUM,
     // };
     //Buzzer_Play_Melody(system_init_melody); // TODO: Change to non-blocking
+    Remote_Init();
 
     // Initialize all tasks
     Robot_Tasks_Start();
@@ -57,9 +58,9 @@ void Handle_Starting_Up_State()
     Gimbal_Task_Init();
     Launch_Task_Init();
 
-    Referee_System_Init(&huart10); // ! change the uart peripheral, or else instacrash
-    Jetson_Orin_Init(&huart2); // TODO assign a different UART
-    Remote_Init();
+    // Referee_System_Init(&huart10); // ! change the uart peripheral, or else instacrash
+    // Jetson_Orin_Init(&huart2); // TODO assign a different UART
+
 
     Supercap_Init(&g_supercap);
 

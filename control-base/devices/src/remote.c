@@ -83,7 +83,7 @@ void Remote_Timeout_Callback()
 
 Remote_t* Remote_Init()
 {
-	g_remote_uart = UART_Register(&REMOTE_UART, remote_buffer, 18, Remote_Rx_Callback);
+	g_remote_uart = UART_Register(&huart5, remote_buffer, 18, Remote_Rx_Callback);
 	g_remote_daemon = Daemon_Register(20, 20, Remote_Timeout_Callback);
 	return &g_remote;
 }
