@@ -67,6 +67,7 @@ C_INCLUDES = \
 -I$(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 -I$(BOARD_BASE)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 -I$(BOARD_BASE)/Drivers/CMSIS/Include \
+-I$(BOARD_BASE)/Drivers/CMSIS/DSP/Include \
 -I$(CONTROL_BASE)/algo/inc \
 -I$(CONTROL_BASE)/devices/inc \
 -I$(CONTROL_BASE)/bsp/inc \
@@ -143,7 +144,11 @@ $(BOARD_BASE)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port
 $(wildcard $(CONTROL_BASE)/algo/src/*.c) \
 $(wildcard $(CONTROL_BASE)/bsp/src/*.c) \
 $(wildcard $(CONTROL_BASE)/devices/src/*.c) \
-$(wildcard $(ROBOT_PROJECT)/src/*.c)
+$(wildcard $(ROBOT_PROJECT)/src/*.c) \
+$(BOARD_BASE)/Drivers/CMSIS/DSP/Source/FastMathFunctions/arm_cos_f32.c \
+$(BOARD_BASE)/Drivers/CMSIS/DSP/Source/FastMathFunctions/arm_sin_f32.c \
+$(BOARD_BASE)/Drivers/CMSIS/DSP/Source/FastMathFunctions/arm_atan2_f32.c \
+$(BOARD_BASE)/Drivers/CMSIS/DSP/Source/CommonTables/arm_common_tables.c
 
 # ASM sources
 ASM_SOURCES = $(BOARD_BASE)/startup_stm32f407xx.s

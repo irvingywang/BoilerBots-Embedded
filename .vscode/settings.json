@@ -1,5 +1,11 @@
 {
     "files.associations": {
-        "jetson_orin.h": "c"
+        "jetson_orin.h": "c",
+        "two_bar_leg.h": "c",
+        "arm_math.h": "c",
+        "dm_motor.h": "c",
+        "remote.h": "c",
+        "robot.h": "c",
+        "chassis_task.h": "c"
     }
 }
