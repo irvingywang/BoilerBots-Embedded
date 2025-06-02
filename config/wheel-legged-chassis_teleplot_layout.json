@@ -1,0 +1,72 @@
+{
+   "widgets": [
+      {
+         "type": "chart",
+         "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 0
+         },
+         "series": [
+            {
+               "name": "motor0",
+               "sourceNames": [
+                  "motor0"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "motor0",
+                  "_id": "data-serie-12",
+                  "stroke": "rgba(231,76,60,1)",
+                  "fill": "rgba(231,76,60,0.1)"
+               },
+               "type": "number"
+            },
+            {
+               "name": "motor1",
+               "sourceNames": [
+                  "motor1"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "motor1",
+                  "_id": "data-serie-13",
+                  "stroke": "rgba(52,152,219,1)",
+                  "fill": "rgba(52,152,219,0.1)"
+               },
+               "type": "number"
+            },
+            {
+               "name": "motor2",
+               "sourceNames": [
+                  "motor2"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "motor2",
+                  "_id": "data-serie-14",
+                  "stroke": "rgba(46,204,113,1)",
+                  "fill": "rgba(46,204,113,0.1)"
+               },
+               "type": "number"
+            },
+            {
+               "name": "motor3",
+               "sourceNames": [
+                  "motor3"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "motor3",
+                  "_id": "data-serie-15",
+                  "stroke": "rgba(155,89,182,1)",
+                  "fill": "rgba(155,89,182,0.1)"
+               },
+               "type": "number"
+            }
+         ]
+      }
+   ],
+   "viewDuration": 15
+}

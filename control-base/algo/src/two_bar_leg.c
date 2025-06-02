@@ -35,13 +35,24 @@ void Two_Bar_Get_Motor_Torque_From_Virtual_Force(Two_Bar_Kinematics_t *kinematic
     float theta = kinematics->theta;
     float L = kinematics->leg_length;
 
-    // Calculate Jacobian matrix
-    float J11 = arm_sin_f32(theta + theta1) * L1;
-    float J12 = -arm_cos_f32(theta + theta1) * L1 / L;
-    float J21 = arm_sin_f32(theta + theta2) * L2;
-    float J22 = -arm_cos_f32(theta + theta2) * L2 / L;
+    // fx = supportive_force * np.cos(theta) - torque / L * np.sin(theta)
+    // fy = supportive_force * np.sin(theta) + torque / L * np.cos(theta)
+
+    // torque1_xy = -L1 * np.sin(theta1) * fx + L1 * np.cos(theta1) * fy
+    // torque2_xy = -L2 * np.sin(theta2) * fx + L2 * np.cos(theta2) * fy
+    
+    float fx = virtual_force->supportive_force * arm_cos_f32(theta) - virtual_force->torque / L * arm_sin_f32(theta);
+    float fy = virtual_force->supportive_force * arm_sin_f32(theta) + virtual_force->torque / L * arm_cos_f32(theta);
+    motor_torque->torque1 = -L1 * arm_sin_f32(theta1) * fx + L1 * arm_cos_f32(theta1) * fy;
+    motor_torque->torque2 = -L2 * arm_sin_f32(theta2) * fx + L2 * arm_cos_f32(theta2) * fy;
+
+    // // Calculate Jacobian matrix
+    // float J11 = arm_sin_f32(theta + theta1) * L1;
+    // float J12 = -arm_cos_f32(theta + theta1) * L1 / L;
+    // float J21 = arm_sin_f32(theta + theta2) * L2;
+    // float J22 = -arm_cos_f32(theta + theta2) * L2 / L;
 
     // Calculate Tau = J * [F Tau] Transpose
-    motor_torque->torque1 = J11 * virtual_force->supportive_force + J12 * virtual_force->torque;
-    motor_torque->torque2 = J21 * virtual_force->supportive_force + J22 * virtual_force->torque;
+    // motor_torque->torque1 = J11 * virtual_force->supportive_force + J12 * virtual_force->torque;
+    // motor_torque->torque2 = J21 * virtual_force->supportive_force + J22 * virtual_force->torque;
 }

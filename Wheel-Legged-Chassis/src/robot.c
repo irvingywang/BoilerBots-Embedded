@@ -50,7 +50,8 @@ void Handle_Starting_Up_State()
     Launch_Task_Init();
     Remote_Init(&huart3);
     CAN_Service_Init();
-    Referee_System_Init(&huart1);
+    // Referee_System_Init(&huart1);
+    // Debug_Task_Init();
     Supercap_Init(&g_supercap);
 
     // Set robot state to disabled

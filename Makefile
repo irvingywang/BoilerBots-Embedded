@@ -206,7 +206,7 @@ $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 	@$(BIN) $< $@
 
 $(BUILD_DIR):
-	@if not exist "$@" mkdir "$@"
+	@mkdir -p $@
 
 # Clean build files
 clean:
