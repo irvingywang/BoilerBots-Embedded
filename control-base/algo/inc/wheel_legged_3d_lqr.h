@@ -11,6 +11,14 @@ typedef struct {
     float dtheta_lr;
     float theta_b;
     float dtheta_b;
+
+    // for calculation
+    float s_prev;
+    float s_offset;
+    float phi_prev;
+    float theta_ll_prev;
+    float theta_lr_prev;
+    float theta_b_prev;
 } WheelLeggedState;
 
 typedef struct {

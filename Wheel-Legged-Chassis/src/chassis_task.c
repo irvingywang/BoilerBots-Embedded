@@ -8,6 +8,7 @@
 #include "user_math.h"
 #include "wheel_legged_3d_lqr.h"
 #include "dji_motor.h"
+#include "imu_task.h"
 
 extern Robot_State_t g_robot_state;
 extern Remote_t g_remote;
@@ -84,13 +85,31 @@ void Chassis_Task_Init()
 
 }
 
-void Chassis_Kinematics_Update()
+void Chassis_State_Estimation(float dt, float phi, float dphi, float theta_b, float dtheta_b)
 {
     Two_Bar_Forward_Kinematics(&g_right_leg_kinematics, g_chassis_joint_motor[2]->stats->pos, g_chassis_joint_motor[3]->stats->pos);
     Two_Bar_Forward_Kinematics(&g_left_leg_kinematics, g_chassis_joint_motor[0]->stats->pos, g_chassis_joint_motor[1]->stats->pos);
-    // Construct Wheel Legged State
 
+    // Construct Wheel Legged State
+    g_wheel_legged_state.s = (DJI_Motor_Get_Total_Angle(g_chassis_drive_motor[0]) + DJI_Motor_Get_Total_Angle(g_chassis_drive_motor[1])) / 2.0f + g_wheel_legged_state.s_offset;
+    g_wheel_legged_state.ds = (g_wheel_legged_state.s - g_wheel_legged_state.s_prev) / dt;
+    g_wheel_legged_state.s_prev = g_wheel_legged_state.s;
+
+    g_wheel_legged_state.phi = phi;
+    g_wheel_legged_state.dphi = dphi;
+    
+    g_wheel_legged_state.theta_ll = -(g_left_leg_kinematics.theta + PI/2.0f);
+    g_wheel_legged_state.dtheta_ll = (g_left_leg_kinematics.theta - g_wheel_legged_state.theta_ll_prev) / dt;
+    g_wheel_legged_state.theta_ll_prev = g_left_leg_kinematics.theta;
+
+    g_wheel_legged_state.theta_lr = (g_right_leg_kinematics.theta + PI/2.0f);
+    g_wheel_legged_state.dtheta_lr = (g_right_leg_kinematics.theta - g_wheel_legged_state.theta_lr_prev) / dt;
+    g_wheel_legged_state.theta_lr_prev = g_right_leg_kinematics.theta;
+
+    g_wheel_legged_state.theta_b = theta_b;
+    g_wheel_legged_state.dtheta_b = dtheta_b;
 }
+
 
 void Chassis_Apply_Controller()
 {
@@ -118,10 +137,15 @@ void Chassis_Apply_Controller()
         Two_Bar_Get_Motor_Torque_From_Virtual_Force(&g_left_leg_kinematics, &left_virtual_force, &left_motor_torque);
 }
 
+void Chassis_Reset_State()
+{
+    g_wheel_legged_state.s_offset = -g_wheel_legged_state.s;
+}
+
 void Chassis_Ctrl_Loop()
 {
-    Chassis_Kinematics_Update();
-
+    Chassis_State_Estimation(0.002f, g_imu.rad.yaw, g_imu.bmi088_raw.gyro[IMU_BMI088_YAW_IDX],
+        -g_imu.rad.pitch, -(g_imu.bmi088_raw.gyro[IMU_BMI088_PITCH_IDX]));
     if (g_robot_state.state == ENABLED)
     {
         DM_Motor_Enable_Motor(g_chassis_joint_motor[0]);
@@ -142,6 +166,10 @@ void Chassis_Ctrl_Loop()
         // right_virtual_force.torque = g_remote.controller.right_stick.x / 66.0f;
         // DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
         // DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[0], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[1], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         DJI_Motor_Set_Torque(g_chassis_drive_motor[1], g_remote.controller.left_stick.y / 660.0f * 3.6f);
         DJI_Motor_Set_Torque(g_chassis_drive_motor[0], g_remote.controller.right_stick.y / 660.0f * 3.6f);
     }
@@ -153,4 +181,9 @@ void Chassis_Ctrl_Loop()
         DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
         DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
     }
+}
+
+void Chassis_Task_Disable()
+{
+    Chassis_Reset_State();
 }

@@ -10,58 +10,186 @@
          },
          "series": [
             {
-               "name": "motor0",
+               "name": "s",
                "sourceNames": [
-                  "motor0"
+                  "s"
                ],
                "formula": "",
                "options": {
-                  "_serie": "motor0",
-                  "_id": "data-serie-12",
+                  "_serie": "s",
+                  "_id": "data-serie-42",
                   "stroke": "rgba(231,76,60,1)",
                   "fill": "rgba(231,76,60,0.1)"
                },
                "type": "number"
             },
             {
-               "name": "motor1",
+               "name": "ds",
                "sourceNames": [
-                  "motor1"
+                  "ds"
                ],
                "formula": "",
                "options": {
-                  "_serie": "motor1",
-                  "_id": "data-serie-13",
+                  "_serie": "ds",
+                  "_id": "data-serie-43",
                   "stroke": "rgba(52,152,219,1)",
                   "fill": "rgba(52,152,219,0.1)"
                },
                "type": "number"
-            },
+            }
+         ]
+      },
+      {
+         "type": "chart",
+         "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 0
+         },
+         "series": [
             {
-               "name": "motor2",
+               "name": "phi",
                "sourceNames": [
-                  "motor2"
+                  "phi"
                ],
                "formula": "",
                "options": {
-                  "_serie": "motor2",
-                  "_id": "data-serie-14",
-                  "stroke": "rgba(46,204,113,1)",
-                  "fill": "rgba(46,204,113,0.1)"
+                  "_serie": "phi",
+                  "_id": "data-serie-39",
+                  "stroke": "rgba(231,76,60,1)",
+                  "fill": "rgba(231,76,60,0.1)"
                },
                "type": "number"
             },
             {
-               "name": "motor3",
+               "name": "dphi",
                "sourceNames": [
-                  "motor3"
+                  "dphi"
                ],
                "formula": "",
                "options": {
-                  "_serie": "motor3",
-                  "_id": "data-serie-15",
-                  "stroke": "rgba(155,89,182,1)",
-                  "fill": "rgba(155,89,182,0.1)"
+                  "_serie": "dphi",
+                  "_id": "data-serie-41",
+                  "stroke": "rgba(52,152,219,1)",
+                  "fill": "rgba(52,152,219,0.1)"
+               },
+               "type": "number"
+            }
+         ]
+      },
+      {
+         "type": "chart",
+         "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 0
+         },
+         "series": [
+            {
+               "name": "theta_ll",
+               "sourceNames": [
+                  "theta_ll"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "theta_ll",
+                  "_id": "data-serie-33",
+                  "stroke": "rgba(231,76,60,1)",
+                  "fill": "rgba(231,76,60,0.1)"
+               },
+               "type": "number"
+            },
+            {
+               "name": "theta_lr",
+               "sourceNames": [
+                  "theta_lr"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "theta_lr",
+                  "_id": "data-serie-34",
+                  "stroke": "rgba(52,152,219,1)",
+                  "fill": "rgba(52,152,219,0.1)"
+               },
+               "type": "number"
+            }
+         ]
+      },
+      {
+         "type": "chart",
+         "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 0
+         },
+         "series": [
+            {
+               "name": "dtheta_ll",
+               "sourceNames": [
+                  "dtheta_ll"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "dtheta_ll",
+                  "_id": "data-serie-30",
+                  "stroke": "rgba(231,76,60,1)",
+                  "fill": "rgba(231,76,60,0.1)"
+               },
+               "type": "number"
+            },
+            {
+               "name": "dtheta_lr",
+               "sourceNames": [
+                  "dtheta_lr"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "dtheta_lr",
+                  "_id": "data-serie-32",
+                  "stroke": "rgba(52,152,219,1)",
+                  "fill": "rgba(52,152,219,0.1)"
+               },
+               "type": "number"
+            }
+         ]
+      },
+      {
+         "type": "chart",
+         "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 0
+         },
+         "series": [
+            {
+               "name": "theta_b",
+               "sourceNames": [
+                  "theta_b"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "theta_b",
+                  "_id": "data-serie-25",
+                  "stroke": "rgba(231,76,60,1)",
+                  "fill": "rgba(231,76,60,0.1)"
+               },
+               "type": "number"
+            },
+            {
+               "name": "dtheta_b",
+               "sourceNames": [
+                  "dtheta_b"
+               ],
+               "formula": "",
+               "options": {
+                  "_serie": "dtheta_b",
+                  "_id": "data-serie-27",
+                  "stroke": "rgba(52,152,219,1)",
+                  "fill": "rgba(52,152,219,0.1)"
                },
                "type": "number"
             }
