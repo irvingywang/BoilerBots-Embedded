@@ -12,7 +12,7 @@
 #include "two_bar_leg.h"
 #include "dm_motor.h"
 
-extern DM_Motor_Handle_t *g_chassis_motor[4];;
+extern DM_Motor_Handle_t *g_chassis_joint_motor[4];;
 extern Two_Bar_Kinematics_t g_right_leg_kinematics;;
 
 extern Two_Bar_Virtual_Force right_virtual_force;
@@ -55,8 +55,8 @@ void Debug_Task_Loop(void)
     DEBUG_PRINTF(&huart1, ">error:%f\n", g_chassis_right_angle_error);
     DEBUG_PRINTF(&huart1, ">original:%f\n", g_chassis_right_angle_error_original);
     DEBUG_PRINTF(&huart1, ">motor0:%f\n>motor1:%f\n>motor2:%f\n>motor3:%f\n",
-                 g_chassis_motor[0]->stats->pos, g_chassis_motor[1]->stats->pos,
-                 g_chassis_motor[2]->stats->pos, g_chassis_motor[3]->stats->pos);
+                 g_chassis_joint_motor[0]->stats->pos, g_chassis_joint_motor[1]->stats->pos,
+                 g_chassis_joint_motor[2]->stats->pos, g_chassis_joint_motor[3]->stats->pos);
     
     //  DEBUG_PRINTF(&huart6, ">time:%.1f\n>yaw:%f\n>pitch:%f\n>roll:%f\n", (float) counter / 1000.0f * DEBUG_PERIOD,
     //              g_imu.deg.yaw, g_imu.deg.pitch, g_imu.deg.roll);
