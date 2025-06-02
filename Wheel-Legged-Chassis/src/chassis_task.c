@@ -68,10 +68,11 @@ void Chassis_Task_Init()
     Motor_Config_t drive_motor_config = {
         .can_bus = 1,
         .speed_controller_id = 0x01,
-        .motor_reversal = MOTOR_REVERSAL_REVERSED,
+        .motor_reversal = MOTOR_REVERSAL_NORMAL,
         .control_mode = TORQUE_CONTROL,
     };
     g_chassis_drive_motor[0] = DJI_Motor_Init(&drive_motor_config, M3508_PLANETARY);
+    drive_motor_config.motor_reversal = MOTOR_REVERSAL_REVERSED;
     drive_motor_config.speed_controller_id = 0x02;
     g_chassis_drive_motor[1] = DJI_Motor_Init(&drive_motor_config, M3508_PLANETARY);
     
@@ -141,8 +142,8 @@ void Chassis_Ctrl_Loop()
         // right_virtual_force.torque = g_remote.controller.right_stick.x / 66.0f;
         // DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
         // DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
-        DJI_Motor_Set_Torque(g_chassis_drive_motor[0], g_remote.controller.left_stick.y / 660.0f * 3.6f);
-        DJI_Motor_Set_Torque(g_chassis_drive_motor[1], g_remote.controller.right_stick.y / 660.0f * 3.6f);
+        DJI_Motor_Set_Torque(g_chassis_drive_motor[1], g_remote.controller.left_stick.y / 660.0f * 3.6f);
+        DJI_Motor_Set_Torque(g_chassis_drive_motor[0], g_remote.controller.right_stick.y / 660.0f * 3.6f);
     }
     else if (g_remote.controller.right_switch == UP) // Close Loop
     {
