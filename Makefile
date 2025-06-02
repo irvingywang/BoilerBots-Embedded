@@ -34,6 +34,13 @@ else
 	IS_WINDOWS := 0
 endif
 
+# Define mkdir macro according to the OS
+ifeq ($(IS_WINDOWS),1)
+	MKDIR_CMD = if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
+else
+	MKDIR_CMD = mkdir -p "$(BUILD_DIR)"
+endif
+
 # ======== TOOLCHAIN SETUP ========
 # Compiler and tools
 PREFIX = arm-none-eabi-
@@ -214,12 +221,6 @@ $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 	@$(BIN) $< $@
 
 $(BUILD_DIR):
-	ifeq ($(IS_WINDOWS),1)
-		MKDIR_CMD = if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
-	else
-		MKDIR_CMD = mkdir -p "$(BUILD_DIR)"
-	endif
-
 	@$(MKDIR_CMD)
 
 # Clean build files
