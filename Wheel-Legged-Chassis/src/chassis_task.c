@@ -101,15 +101,15 @@ void Chassis_Apply_Controller()
         g_chassis_target.target_right_leg_angle = g_remote.controller.right_stick.x / 110.0f - 1.57f;
 
         // Right Leg
-        float virtual_supportive_force = PID(&g_chassis_right_leg_length_pid, g_chassis_target.target_left_leg_length - g_right_leg_kinematics.leg_length);
-        float angle_error = g_chassis_target.target_left_leg_angle - g_right_leg_kinematics.theta;
+        float virtual_supportive_force = PID(&g_chassis_right_leg_length_pid, g_chassis_target.target_right_leg_length - g_right_leg_kinematics.leg_length);
+        float angle_error = g_chassis_target.target_right_leg_angle - g_right_leg_kinematics.theta;
         __MAP_ANGLE_TO_UNIT_CIRCLE(angle_error);
         right_virtual_force.supportive_force = virtual_supportive_force;
         right_virtual_force.torque = PID(&g_chassis_right_leg_angle_pid, angle_error);
 
         // Left Leg
-        virtual_supportive_force = PID(&g_chassis_left_leg_length_pid, g_chassis_target.target_right_leg_length - g_left_leg_kinematics.leg_length);
-        angle_error = g_chassis_target.target_right_leg_angle - g_left_leg_kinematics.theta;
+        virtual_supportive_force = PID(&g_chassis_left_leg_length_pid, g_chassis_target.target_left_leg_length - g_left_leg_kinematics.leg_length);
+        angle_error = g_chassis_target.target_left_leg_angle - g_left_leg_kinematics.theta;
         __MAP_ANGLE_TO_UNIT_CIRCLE(angle_error);
         left_virtual_force.supportive_force = virtual_supportive_force;
         left_virtual_force.torque = PID(&g_chassis_left_leg_angle_pid, angle_error);
