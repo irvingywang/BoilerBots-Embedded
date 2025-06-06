@@ -12,10 +12,15 @@
 #include "two_bar_leg.h"
 #include "dm_motor.h"
 #include "wheel_legged_3d_lqr.h"
+#include "dji_motor.h"
+
+extern WheelLeggedInput g_wheel_legged_input;
 
 extern WheelLeggedState g_wheel_legged_state;
 
 extern DM_Motor_Handle_t *g_chassis_joint_motor[4];;
+extern DJI_Motor_Handle_t *g_chassis_drive_motor_left;
+extern DJI_Motor_Handle_t *g_chassis_drive_motor_right;
 extern Two_Bar_Kinematics_t g_right_leg_kinematics;;
 
 extern Two_Bar_Virtual_Force right_virtual_force;
@@ -76,6 +81,10 @@ void Debug_Task_Loop(void)
     DEBUG_PRINTF(&huart1, ">dtheta_lr:%.4f\n", g_wheel_legged_state.dtheta_lr);
     DEBUG_PRINTF(&huart1, ">theta_b:%.4f\n", g_wheel_legged_state.theta_b);
     DEBUG_PRINTF(&huart1, ">dtheta_b:%.4f\n", g_wheel_legged_state.dtheta_b);
+    // DEBUG_PRINTF(&huart1, ">mtrpos1:%.4f\n", DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_left));
+    DEBUG_PRINTF(&huart1, ">T1:%.4f\n", g_wheel_legged_input.T_bl);
+    DEBUG_PRINTF(&huart1, ">T2:%.4f\n", g_wheel_legged_input.T_br);
+    DEBUG_PRINTF(&huart1, ">mtrtorint:%d\n", g_chassis_drive_motor_left->output_current);
     //  DEBUG_PRINTF(&huart6, ">time:%.1f\n>yaw:%f\n>pitch:%f\n>roll:%f\n", (float) counter / 1000.0f * DEBUG_PERIOD,
     //              g_imu.deg.yaw, g_imu.deg.pitch, g_imu.deg.roll);
     //  DEBUG_PRINTF(&huart6, ">remote_daemon:%d\n", g_remote_daemon->counter);
