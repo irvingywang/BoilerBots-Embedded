@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "user_math.h": "c",
+        "stdint.h": "c",
+        "dji_motor.h": "c"
+    }
+}
