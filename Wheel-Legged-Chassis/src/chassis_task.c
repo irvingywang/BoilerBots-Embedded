@@ -11,6 +11,11 @@
 #include "dji_motor.h"
 #include "imu_task.h"
 
+#define LEFT_THIGH (1)
+#define LEFT_CALF (0)
+#define RIGHT_THIGH (3)
+#define RIGHT_CALF (2)
+
 extern Robot_State_t g_robot_state;
 extern Remote_t g_remote;
 DM_Motor_Handle_t *g_chassis_joint_motor[4] = {NULL};
@@ -66,7 +71,10 @@ void Chassis_Task_Init()
         .kp = 10.0f,
         .kd = .5f,
     };
-    float pos_offset[4] = {-.3736f, -3.0679f, -2.607f, -2.6766f};
+    // 0x0 = -1.28372097, 0x01= -0.781379461 left datui,  
+    // 0x2 = 1.962116, 0x3 = 4.57898361 right datui
+    // 0x1: -0.67654705, 0x3: -1.28080368, 0x0: -1.69623089 , 0x2: -0.658999443
+    float pos_offset[4] = {1.3323f, -0.67654705f, -0.658999443f, 1.9549f};
     for (int i = 0; i < 4; i++)
     {
         motor_config.tx_id = 0x00 + i;
@@ -103,8 +111,8 @@ float Chassis_Get_Wheel_Displacement()
 
 void Chassis_State_Estimation(float dt, const float filter_constant, float phi, float dphi, float theta_b, float dtheta_b)
 {
-    Two_Bar_Forward_Kinematics(&g_right_leg_kinematics, g_chassis_joint_motor[2]->stats->pos, g_chassis_joint_motor[3]->stats->pos);
-    Two_Bar_Forward_Kinematics(&g_left_leg_kinematics, g_chassis_joint_motor[0]->stats->pos, g_chassis_joint_motor[1]->stats->pos);
+    Two_Bar_Forward_Kinematics(&g_right_leg_kinematics, g_chassis_joint_motor[RIGHT_THIGH]->stats->pos, g_chassis_joint_motor[RIGHT_CALF]->stats->pos);
+    Two_Bar_Forward_Kinematics(&g_left_leg_kinematics, g_chassis_joint_motor[LEFT_THIGH]->stats->pos, g_chassis_joint_motor[LEFT_CALF]->stats->pos);
 
     // Construct Wheel Legged State
     g_wheel_legged_state.s = Chassis_Get_Wheel_Displacement() + g_wheel_legged_state.s_offset;
@@ -250,24 +258,26 @@ void Chassis_Ctrl_Loop()
         DM_Motor_Enable_Motor(g_chassis_joint_motor[2]);
         DM_Motor_Enable_Motor(g_chassis_joint_motor[3]);
     }
+    // 
 
     if (g_remote.controller.right_switch == MID) // Open Loop VMC (Debug Only)
     {
         Chassis_Set_Leg_And_Angle_By_Remote(0.20f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[0], 0.0f, 0.0f, left_motor_torque.torque1, 0.0f, 0.0f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[1], 0.0f, 0.0f, left_motor_torque.torque2, 0.0f, 0.0f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
+        // 0 and 2 are both xiaotui, 1 and 3 are both datui
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[1], 0.0f, 0.0f, left_motor_torque.torque1, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[0], 0.0f, 0.0f, left_motor_torque.torque2, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
         DJI_Motor_Set_Torque(g_chassis_drive_motor_left, g_remote.controller.left_stick.y / 660.0f * 3.6f);
         DJI_Motor_Set_Torque(g_chassis_drive_motor_right, g_remote.controller.right_stick.y / 660.0f * 3.6f);
     }
     else if (g_remote.controller.right_switch == UP) // Close Loop
     {
         // Apply to Hardware
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[0], 0.0f, 0.0f, left_motor_torque.torque1, 0.0f, 0.0f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[1], 0.0f, 0.0f, left_motor_torque.torque2, 0.0f, 0.0f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
-        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[1], 0.0f, 0.0f, left_motor_torque.torque1, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[0], 0.0f, 0.0f, left_motor_torque.torque2, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
+        DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
         DJI_Motor_Set_Torque(g_chassis_drive_motor_left, g_chassis_left_drive_torque);
         DJI_Motor_Set_Torque(g_chassis_drive_motor_right, g_chassis_right_drive_torque);
     }
