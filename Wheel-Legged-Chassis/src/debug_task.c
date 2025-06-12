@@ -44,6 +44,10 @@ const char *bottom_border = "/***** End of Info *****/\r\n";
 #define DEBUG_ENABLED
 extern float g_chassis_right_angle_error;
 extern float g_chassis_right_angle_error_original;
+extern Two_Bar_Virtual_Force left_virtual_force;
+extern Two_Bar_Virtual_Force right_virtual_force;
+extern float g_chassis_left_drive_torque;
+extern float g_chassis_right_drive_torque;
 void Debug_Task_Loop(void)
 {
 #ifdef DEBUG_ENABLED
@@ -82,9 +86,10 @@ void Debug_Task_Loop(void)
     DEBUG_PRINTF(&huart1, ">theta_b:%.4f\n", g_wheel_legged_state.theta_b);
     DEBUG_PRINTF(&huart1, ">dtheta_b:%.4f\n", g_wheel_legged_state.dtheta_b);
     // DEBUG_PRINTF(&huart1, ">mtrpos1:%.4f\n", DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_left));
-    DEBUG_PRINTF(&huart1, ">T1:%.4f\n", g_wheel_legged_input.T_bl);
-    DEBUG_PRINTF(&huart1, ">T2:%.4f\n", g_wheel_legged_input.T_br);
-    DEBUG_PRINTF(&huart1, ">mtrtorint:%d\n", g_chassis_drive_motor_left->output_current);
+    DEBUG_PRINTF(&huart1, ">T1:%.4f\n", left_virtual_force.torque);
+    DEBUG_PRINTF(&huart1, ">T2:%.4f\n", right_virtual_force.torque);
+    DEBUG_PRINTF(&huart1, ">mtr1:%f\n", g_chassis_left_drive_torque);
+    DEBUG_PRINTF(&huart1, ">mtr2:%f\n", g_chassis_right_drive_torque);
     //  DEBUG_PRINTF(&huart6, ">time:%.1f\n>yaw:%f\n>pitch:%f\n>roll:%f\n", (float) counter / 1000.0f * DEBUG_PERIOD,
     //              g_imu.deg.yaw, g_imu.deg.pitch, g_imu.deg.roll);
     //  DEBUG_PRINTF(&huart6, ">remote_daemon:%d\n", g_remote_daemon->counter);
