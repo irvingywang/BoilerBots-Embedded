@@ -48,6 +48,14 @@ extern Two_Bar_Virtual_Force left_virtual_force;
 extern Two_Bar_Virtual_Force right_virtual_force;
 extern float g_chassis_left_drive_torque;
 extern float g_chassis_right_drive_torque;
+#include "wheel_legged_2d_lqr.h"
+extern lqr_ss_t g_2d_left_state;
+extern lqr_ss_t g_2d_right_state;
+
+extern lqr_u_t g_2d_left_input;
+extern lqr_u_t g_2d_right_input;
+
+
 void Debug_Task_Loop(void)
 {
 #ifdef DEBUG_ENABLED
@@ -75,21 +83,41 @@ void Debug_Task_Loop(void)
     //              g_wheel_legged_state.theta_ll, g_wheel_legged_state.dtheta_ll,
     //              g_wheel_legged_state.theta_lr, g_wheel_legged_state.dtheta_lr,
     //              g_wheel_legged_state.theta_b, g_wheel_legged_state.dtheta_b);
-    DEBUG_PRINTF(&huart1, ">s:%.4f\n", g_wheel_legged_state.s);
-    DEBUG_PRINTF(&huart1, ">ds:%.4f\n", g_wheel_legged_state.ds);
-    DEBUG_PRINTF(&huart1, ">phi:%.4f\n", g_wheel_legged_state.phi);
-    DEBUG_PRINTF(&huart1, ">dphi:%.4f\n", g_wheel_legged_state.dphi);
-    DEBUG_PRINTF(&huart1, ">theta_ll:%.4f\n", g_wheel_legged_state.theta_ll);
-    DEBUG_PRINTF(&huart1, ">dtheta_ll:%.4f\n", g_wheel_legged_state.dtheta_ll);
-    DEBUG_PRINTF(&huart1, ">theta_lr:%.4f\n", g_wheel_legged_state.theta_lr);
-    DEBUG_PRINTF(&huart1, ">dtheta_lr:%.4f\n", g_wheel_legged_state.dtheta_lr);
-    DEBUG_PRINTF(&huart1, ">theta_b:%.4f\n", g_wheel_legged_state.theta_b);
-    DEBUG_PRINTF(&huart1, ">dtheta_b:%.4f\n", g_wheel_legged_state.dtheta_b);
-    // DEBUG_PRINTF(&huart1, ">mtrpos1:%.4f\n", DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_left));
-    DEBUG_PRINTF(&huart1, ">T1:%.4f\n", left_virtual_force.torque);
-    DEBUG_PRINTF(&huart1, ">T2:%.4f\n", right_virtual_force.torque);
-    DEBUG_PRINTF(&huart1, ">mtr1:%f\n", g_chassis_left_drive_torque);
-    DEBUG_PRINTF(&huart1, ">mtr2:%f\n", g_chassis_right_drive_torque);
+    // DEBUG_PRINTF(&huart1, ">s:%.4f\n", g_wheel_legged_state.s);
+    // DEBUG_PRINTF(&huart1, ">ds:%.4f\n", g_wheel_legged_state.ds);
+    // DEBUG_PRINTF(&huart1, ">phi:%.4f\n", g_wheel_legged_state.phi);
+    // DEBUG_PRINTF(&huart1, ">dphi:%.4f\n", g_wheel_legged_state.dphi);
+    // DEBUG_PRINTF(&huart1, ">theta_ll:%.4f\n", g_wheel_legged_state.theta_ll);
+    // DEBUG_PRINTF(&huart1, ">dtheta_ll:%.4f\n", g_wheel_legged_state.dtheta_ll);
+    // DEBUG_PRINTF(&huart1, ">theta_lr:%.4f\n", g_wheel_legged_state.theta_lr);
+    // DEBUG_PRINTF(&huart1, ">dtheta_lr:%.4f\n", g_wheel_legged_state.dtheta_lr);
+    // DEBUG_PRINTF(&huart1, ">theta_b:%.4f\n", g_wheel_legged_state.theta_b);
+    // DEBUG_PRINTF(&huart1, ">dtheta_b:%.4f\n", g_wheel_legged_state.dtheta_b);
+    // // DEBUG_PRINTF(&huart1, ">mtrpos1:%.4f\n", DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_left));
+    // DEBUG_PRINTF(&huart1, ">T1:%.4f\n", left_virtual_force.torque);
+    // DEBUG_PRINTF(&huart1, ">T2:%.4f\n", right_virtual_force.torque);
+    // DEBUG_PRINTF(&huart1, ">mtr1:%f\n", g_chassis_left_drive_torque);
+    // DEBUG_PRINTF(&huart1, ">mtr2:%f\n", g_chassis_right_drive_torque);
+    DEBUG_PRINTF(&huart1, ">1_s:%.4f\n", g_2d_left_state.x);
+    DEBUG_PRINTF(&huart1, ">1_ds:%.4f\n", g_2d_left_state.x_dot);
+    DEBUG_PRINTF(&huart1, ">1_theta_ll:%.4f\n", g_2d_left_state.theta);
+    DEBUG_PRINTF(&huart1, ">1_dtheta_ll:%.4f\n", g_2d_left_state.theta_dot);
+    DEBUG_PRINTF(&huart1, ">1_phi:%.4f\n", g_2d_left_state.phi);
+    DEBUG_PRINTF(&huart1, ">1_dphi:%.4f\n", g_2d_left_state.phi_dot);
+    DEBUG_PRINTF(&huart1, ">1_leg_len:%.4f\n", g_2d_left_state.leg_len);
+
+    DEBUG_PRINTF(&huart1, ">2_s:%.4f\n", g_2d_right_state.x);
+    DEBUG_PRINTF(&huart1, ">2_ds:%.4f\n", g_2d_right_state.x_dot);
+    DEBUG_PRINTF(&huart1, ">2_theta_lr:%.4f\n", g_2d_right_state.theta);
+    DEBUG_PRINTF(&huart1, ">2_dtheta_lr:%.4f\n", g_2d_right_state.theta_dot);
+    DEBUG_PRINTF(&huart1, ">2_phi:%.4f\n", g_2d_right_state.phi);
+    DEBUG_PRINTF(&huart1, ">2_dphi:%.4f\n", g_2d_right_state.phi_dot);
+    DEBUG_PRINTF(&huart1, ">2_leg_len:%.4f\n", g_2d_right_state.leg_len);
+    
+    DEBUG_PRINTF(&huart1, ">left_motor_torque1:%.4f\n", g_2d_left_input.T_A);
+    DEBUG_PRINTF(&huart1, ">left_motor_torque2:%.4f\n", g_2d_left_input.T_B);
+    DEBUG_PRINTF(&huart1, ">right_motor_torque1:%.4f\n", g_2d_right_input.T_A);
+    DEBUG_PRINTF(&huart1, ">right_motor_torque2:%.4f\n", g_2d_right_input.T_B);
     //  DEBUG_PRINTF(&huart6, ">time:%.1f\n>yaw:%f\n>pitch:%f\n>roll:%f\n", (float) counter / 1000.0f * DEBUG_PERIOD,
     //              g_imu.deg.yaw, g_imu.deg.pitch, g_imu.deg.roll);
     //  DEBUG_PRINTF(&huart6, ">remote_daemon:%d\n", g_remote_daemon->counter);

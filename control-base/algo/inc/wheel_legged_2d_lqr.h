@@ -12,6 +12,9 @@ typedef struct lqr_ss_s {
     float phi;
     float phi_dot;
     float leg_len;
+
+    float x_offset;
+    float x_prev;
 } lqr_ss_t;
 
 typedef struct lqr_u_s {

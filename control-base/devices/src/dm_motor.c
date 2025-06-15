@@ -286,8 +286,8 @@ void DM_Motor_Send()
         {
             DM_Motor_Frame_Disable_Protocol(g_dm_motors[i]);
             CAN_Transmit(g_dm_motors[i]->can_instance);
-            DM_Motor_Frame_Zero_Current_Protocol(g_dm_motors[i]); // Form the zero current data with DaMiao Motor Protocol
-            CAN_Transmit(g_dm_motors[i]->can_instance);
+            // DM_Motor_Frame_Zero_Current_Protocol(g_dm_motors[i]); // Form the zero current data with DaMiao Motor Protocol
+            // CAN_Transmit(g_dm_motors[i]->can_instance);
             // does not clear the flag, this is to ensure to keep sending so the motor is disabled
         }
     }

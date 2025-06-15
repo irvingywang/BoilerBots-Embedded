@@ -74,7 +74,7 @@ void Chassis_Task_Init()
     // 0x0 = -1.28372097, 0x01= -0.781379461 left datui,  
     // 0x2 = 1.962116, 0x3 = 4.57898361 right datui
     // 0x1: -0.67654705, 0x3: -1.28080368, 0x0: -1.69623089 , 0x2: -0.658999443
-    float pos_offset[4] = {1.3323f, -0.67654705f, -0.658999443f, 1.9549f};
+    float pos_offset[4] = {1.3323f, -0.67654705f, -0.658999443f, 0.2069f};
     for (int i = 0; i < 4; i++)
     {
         motor_config.tx_id = 0x00 + i;
@@ -93,10 +93,10 @@ void Chassis_Task_Init()
     drive_motor_config.speed_controller_id = 0x02;
     g_chassis_drive_motor_left = DJI_Motor_Init(&drive_motor_config, M3508_PLANETARY);
     
-    PID_Init(&g_chassis_right_leg_length_pid, 100.0f, 0.0f, 1000.0f, 50.0f, 0.0f, 0.0f);
-    PID_Init(&g_chassis_left_leg_length_pid, 100.0f, 0.0f, 1000.0f, 50.0f, 0.0f, 0.0f);
-    PID_Init(&g_chassis_right_leg_angle_pid, 20.0f, 0.0f, 200.0f, 40.0f, 0.0f, 0.0f);
-    PID_Init(&g_chassis_left_leg_angle_pid, 20.0f, 0.0f, 200.0f, 40.0f, 0.0f, 0.0f);
+    PID_Init(&g_chassis_right_leg_length_pid, 300.0f, 0.0f, 1000.0f, 50.0f, 0.0f, 0.0f);
+    PID_Init(&g_chassis_left_leg_length_pid, 300.0f, 0.0f, 1000.0f, 50.0f, 0.0f, 0.0f);
+    PID_Init(&g_chassis_right_leg_angle_pid, 5.0f, 0.0f,0.0f, 40.0f, 0.0f, 0.0f);
+    PID_Init(&g_chassis_left_leg_angle_pid, 5.0f, 0.0f, 0.0f, 40.0f, 0.0f, 0.0f);
 
 
 }
@@ -136,16 +136,18 @@ void Chassis_State_Estimation(float dt, const float filter_constant, float phi, 
     g_wheel_legged_state.theta_b = theta_b;
     g_wheel_legged_state.dtheta_b = dtheta_b;
 
-    g_2d_left_state.x = g_wheel_legged_state.s;
-    g_2d_left_state.x_dot = g_wheel_legged_state.ds;
+    g_2d_left_state.x = (DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_left)) * 0.116f + g_2d_left_state.x_offset;
+    g_2d_left_state.x_dot = (g_2d_left_state.x - g_2d_left_state.x_prev) / dt;
+    g_2d_left_state.x_prev = g_2d_left_state.x;
     g_2d_left_state.theta = g_wheel_legged_state.theta_ll;
     g_2d_left_state.theta_dot = g_wheel_legged_state.dtheta_ll;
     g_2d_left_state.phi = g_wheel_legged_state.theta_b;
     g_2d_left_state.phi_dot = g_wheel_legged_state.dtheta_b;
     g_2d_left_state.leg_len = g_left_leg_kinematics.leg_length;
 
-    g_2d_right_state.x = g_wheel_legged_state.s;
-    g_2d_right_state.x_dot = g_wheel_legged_state.ds;
+    g_2d_right_state.x = (DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_right)) * 0.116f + g_2d_right_state.x_offset;
+    g_2d_right_state.x_dot = (g_2d_right_state.x - g_2d_right_state.x_prev) / dt;
+    g_2d_right_state.x_prev = g_2d_right_state.x;
     g_2d_right_state.theta = g_wheel_legged_state.theta_lr;
     g_2d_right_state.theta_dot = g_wheel_legged_state.dtheta_lr;
     g_2d_right_state.phi = g_wheel_legged_state.theta_b;
@@ -211,18 +213,18 @@ void Chassis_LQR_2D(float leg_length, float feedforward_weight_force)
     right_virtual_force.torque = -g_2d_right_input.T_B;
 
     /***** FOR DEBUG Leg Angle Start *****/
-    g_chassis_target.target_left_leg_angle = g_remote.controller.wheel / 110.0f * 0 - 1.57f;
-    g_chassis_target.target_right_leg_angle = g_remote.controller.wheel / 110.0f * 0 - 1.57f;
+    // g_chassis_target.target_left_leg_angle = g_remote.controller.wheel / 110.0f * 0 - 1.57f;
+    // g_chassis_target.target_right_leg_angle = g_remote.controller.wheel / 110.0f * 0 - 1.57f;
 
-    // // Right Leg
-    float angle_error = g_chassis_target.target_right_leg_angle - g_right_leg_kinematics.theta;
-    __MAP_ANGLE_TO_UNIT_CIRCLE(angle_error);
-    right_virtual_force.torque = PID(&g_chassis_right_leg_angle_pid, angle_error);
+    // // // Right Leg
+    // float angle_error = g_chassis_target.target_right_leg_angle - g_right_leg_kinematics.theta;
+    // __MAP_ANGLE_TO_UNIT_CIRCLE(angle_error);
+    // right_virtual_force.torque = PID(&g_chassis_right_leg_angle_pid, angle_error);
 
-    // // Left Leg
-    angle_error = g_chassis_target.target_left_leg_angle - g_left_leg_kinematics.theta;
-    __MAP_ANGLE_TO_UNIT_CIRCLE(angle_error);
-    left_virtual_force.torque = PID(&g_chassis_left_leg_angle_pid, angle_error);
+    // // // Left Leg
+    // angle_error = g_chassis_target.target_left_leg_angle - g_left_leg_kinematics.theta;
+    // __MAP_ANGLE_TO_UNIT_CIRCLE(angle_error);
+    // left_virtual_force.torque = PID(&g_chassis_left_leg_angle_pid, angle_error);
     Two_Bar_Get_Motor_Torque_From_Virtual_Force(&g_right_leg_kinematics, &right_virtual_force, &right_motor_torque);
     Two_Bar_Get_Motor_Torque_From_Virtual_Force(&g_left_leg_kinematics, &left_virtual_force, &left_motor_torque);
 
@@ -232,37 +234,37 @@ void Chassis_LQR_2D(float leg_length, float feedforward_weight_force)
     __MAX_LIMIT(g_chassis_right_drive_torque, -M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT, M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT);
 }
 
-void Chassis_LQR_2D_Right(float leg_length, float feedforward_weight_force)
-{
-    // g_chassis_target.target_left_leg_length = leg_length + g_remote.controller.wheel / 3000.0f;
-    g_chassis_target.target_right_leg_length = leg_length + g_remote.controller.wheel / 3000.0f;
+// void Chassis_LQR_2D_Right(float leg_length, float feedforward_weight_force)
+// {
+//     // g_chassis_target.target_left_leg_length = leg_length + g_remote.controller.wheel / 3000.0f;
+//     g_chassis_target.target_right_leg_length = leg_length + g_remote.controller.wheel / 3000.0f;
     
-    // LQR_Output(&g_2d_left_input, &g_2d_left_state);
-    LQR_Output(&g_2d_right_input, &g_2d_right_state);
+//     // LQR_Output(&g_2d_left_input, &g_2d_left_state);
+//     LQR_Output(&g_2d_right_input, &g_2d_right_state);
 
-    // Leg Length PD
-    // left_virtual_force.supportive_force = PID(&g_chassis_left_leg_length_pid, 
-    //     g_chassis_target.target_left_leg_length - g_left_leg_kinematics.leg_length) + feedforward_weight_force;
-    right_virtual_force.supportive_force = PID(&g_chassis_right_leg_length_pid, 
-        g_chassis_target.target_right_leg_length - g_right_leg_kinematics.leg_length) + feedforward_weight_force;
+//     // Leg Length PD
+//     // left_virtual_force.supportive_force = PID(&g_chassis_left_leg_length_pid, 
+//     //     g_chassis_target.target_left_leg_length - g_left_leg_kinematics.leg_length) + feedforward_weight_force;
+//     right_virtual_force.supportive_force = PID(&g_chassis_right_leg_length_pid, 
+//         g_chassis_target.target_right_leg_length - g_right_leg_kinematics.leg_length) + feedforward_weight_force;
 
-    // Apply LQR Input
-    // left_virtual_force.torque = g_2d_left_input.T_B;
-    right_virtual_force.torque = -g_2d_right_input.T_B;
+//     // Apply LQR Input
+//     // left_virtual_force.torque = g_2d_left_input.T_B;
+//     right_virtual_force.torque = -g_2d_right_input.T_B;
 
-    // g_chassis_left_drive_torque = g_2d_left_input.T_A;
-    g_chassis_right_drive_torque = g_2d_right_input.T_A;
-    // __MAX_LIMIT(g_chassis_left_drive_torque, -M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT, M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT);
-    __MAX_LIMIT(g_chassis_right_drive_torque, -M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT, M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT);
-}
+//     // g_chassis_left_drive_torque = g_2d_left_input.T_A;
+//     g_chassis_right_drive_torque = g_2d_right_input.T_A;
+//     // __MAX_LIMIT(g_chassis_left_drive_torque, -M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT, M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT);
+//     __MAX_LIMIT(g_chassis_right_drive_torque, -M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT, M3508_MAX_CURRENT*M3508_PLANETARY_TORQUE_CONSTANT);
+// }
 
 void Chassis_Set_Leg_And_Angle_By_Remote(float leg_length, float feedforward_weight_force)
 {
     // Set Goal
         g_chassis_target.target_left_leg_length = leg_length + g_remote.controller.wheel / 3000.0f;
-        g_chassis_target.target_left_leg_angle = g_remote.controller.wheel / 110.0f * 0 - 1.57f;
+        g_chassis_target.target_left_leg_angle = g_remote.controller.right_stick.y / 660.0f * 0.1f - 1.57f;
         g_chassis_target.target_right_leg_length = leg_length + g_remote.controller.wheel / 3000.0f;
-        g_chassis_target.target_right_leg_angle = g_remote.controller.wheel / 110.0f * 0 - 1.57f;
+        g_chassis_target.target_right_leg_angle = g_remote.controller.right_stick.y / 660.0f * 0.1f - 1.57f;
 
         // Right Leg
         float virtual_supportive_force = PID(&g_chassis_right_leg_length_pid, g_chassis_target.target_right_leg_length - g_right_leg_kinematics.leg_length);
@@ -285,11 +287,16 @@ void Chassis_Set_Leg_And_Angle_By_Remote(float leg_length, float feedforward_wei
 void Chassis_Reset_State()
 {
     g_wheel_legged_state.s_offset = -Chassis_Get_Wheel_Displacement();
+    g_wheel_legged_state.s = 0.0f;
+    g_wheel_legged_state.ds = 0.0f;
+
+    g_2d_left_state.x_offset = -(DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_left)) * 0.116f;
+    g_2d_right_state.x_offset = -(DJI_Motor_Get_Total_Angle(g_chassis_drive_motor_right)) * 0.116f;
 }
 
 void Chassis_Ctrl_Loop()
 {
-    Chassis_State_Estimation(0.002f, 0.2f, g_imu.rad.yaw, g_imu.bmi088_raw.gyro[IMU_BMI088_YAW_IDX],
+    Chassis_State_Estimation(0.002f, 0.4f, g_imu.rad.yaw, g_imu.bmi088_raw.gyro[IMU_BMI088_YAW_IDX],
         g_imu.rad.pitch, (g_imu.bmi088_raw.gyro[IMU_BMI088_PITCH_IDX]));
     Chassis_LQR_2D(0.20f, 10.0f);
     if (g_robot_state.state == ENABLED)
@@ -310,12 +317,12 @@ void Chassis_Ctrl_Loop()
         DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[3], 0.0f, 0.0f, right_motor_torque.torque1, 0.0f, 0.0f);
         DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[2], 0.0f, 0.0f, right_motor_torque.torque2, 0.0f, 0.0f);
         DJI_Motor_Set_Torque(g_chassis_drive_motor_left, g_remote.controller.left_stick.y / 660.0f * 3.6f);
-        DJI_Motor_Set_Torque(g_chassis_drive_motor_right, g_remote.controller.right_stick.y / 660.0f * 3.6f);
+        DJI_Motor_Set_Torque(g_chassis_drive_motor_right, g_remote.controller.left_stick.y / 660.0f * 3.6f);
     }
     else if (g_remote.controller.right_switch == UP) // Close Loop
     {
         Chassis_Set_Leg_And_Angle_By_Remote(0.20f, 10.0f);
-        Chassis_LQR_2D(0.20f, 10.0f);
+        Chassis_LQR_2D(0.20f, 25.0f);
 
         // Apply to Hardware
         DM_Motor_Ctrl_MIT_PD(g_chassis_joint_motor[1], 0.0f, 0.0f, left_motor_torque.torque1, 0.0f, 0.0f);
